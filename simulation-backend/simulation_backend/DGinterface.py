@@ -3,10 +3,13 @@ import os
 import glob
 import numpy
 import scipy.io
-import edg_acoustics
 import gmsh
 
 import json
+
+import importlib
+import edg_acoustics
+print(edg_acoustics.__file__)
 
 # endregion
 
@@ -121,9 +124,7 @@ def dg_method(json_file_path=None):
     # mesh_data_folder is the current folder by default
     # mesh_data_folder = os.path.split(os.path.abspath(__file__))[0]
     # mesh_filename = os.path.join(mesh_data_folder, mesh_name)
-
     mesh = edg_acoustics.Mesh(mesh_filename, BC_labels)
-
 
     IC = edg_acoustics.Monopole_IC(monopole_xyz, freq_upper_limit)
 

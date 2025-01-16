@@ -1,10 +1,10 @@
 # This file is for quick debugging purposes
 import gmsh
 
-from FVMinterface import de_method
-from DGinterface import dg_method
+from simulation_backend.FVMinterface import de_method
+from simulation_backend.DGinterface import dg_method
 # Currently valid strings: DE, DG
-simulation_method_to_test = "DE" 
+simulation_method_to_test = "DG" 
 
 JSONtoTest = "/Users/SilvinW/repositories/ra_ui_backend/uploads/MeasurementRoom_6ac4df41866940688befd2e948fa8d22_1.json"
 match simulation_method_to_test:

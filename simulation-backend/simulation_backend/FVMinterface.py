@@ -15,18 +15,6 @@ import math
 from math import ceil
 from math import log
 
-# PACKAGE TESTING:
-import edg_acoustics
-import os
-path = os.path.abspath(edg_acoustics.__file__)
-print("Path to edg_acoustics module")
-print (path)
-
-import Diffusion_Module
-path = os.path.abspath(Diffusion_Module.__file__)
-print("Path to Diffusion module")
-print (path)
-
 from Diffusion_Module.FiniteVolumeMethod.FunctionRT import t60_decay
 from Diffusion_Module.FiniteVolumeMethod.FunctionClarity import *
 from Diffusion_Module.FiniteVolumeMethod.FunctionDefinition import *
@@ -52,9 +40,6 @@ logger = logging.getLogger(__name__)
 ###############################################################################
 
 def de_method(json_file_path=None):
-
-    IC = edg_acoustics.Monopole_IC(np.array([1, 2, 3]), 200)
-
     st = time.time()  # start time of calculation
     result_container = {}
     if json_file_path is not None:

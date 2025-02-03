@@ -78,7 +78,7 @@ def dg_method(json_file_path=None):
         mesh_filename = "/Users/SilvinW/repositories/ra_ui_backend/edg-acoustics/examples/scenario1/scenario1_coarser.msh"
 
 
-    impulse_length = 0.01  # total simulation time in seconds
+    impulse_length = 0.1  # total simulation time in seconds
     save_every_Nstep = 10  # save thce results every N steps
     temporary_save_Nstep = 500  # save the results every N steps temporarily during the simulation. The temporary results will be saved in the root directory of this repo.
 

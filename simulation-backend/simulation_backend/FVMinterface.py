@@ -1378,9 +1378,10 @@ def de_method(json_file_path=None):
 
             # result_container['frequenci[0]es'] = center_freq
 
-            for (index, edc_detail) in enumerate(spl_r_off_band):
+            for (index, (edc_detail, pressure_detail)) in enumerate(zip(spl_r_off_band, p_rec_off_deriv_band)):
                 result_container['results'][0]['responses'][0]['receiverResults'].append({
                     "data": edc_detail.tolist(),
+                    "data_pressure": pressure_detail.tolist(),
                     "t": (t_off - t_off[0]).tolist(),
                     "frequency": result_container['results'][0]['frequencies'][index],
                     "type": "edc"

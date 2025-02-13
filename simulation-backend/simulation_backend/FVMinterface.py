@@ -21,6 +21,7 @@ from Diffusion_Module.FiniteVolumeMethod.FunctionDefinition import *
 from Diffusion_Module.FiniteVolumeMethod.FunctionCentreTime import *
 
 import numpy as np
+import pandas as pd
 
 import time as time
 import gmsh
@@ -1378,19 +1379,25 @@ def de_method(json_file_path=None):
 
             # result_container['frequenci[0]es'] = center_freq
 
+            df = pd.DataFrame()
             for (index, (edc_detail, pressure_detail)) in enumerate(zip(spl_r_off_band, p_rec_off_deriv_band)):
                 result_container['results'][0]['responses'][0]['receiverResults'].append({
                     "data": edc_detail.tolist(),
-                    "data_pressure": pressure_detail.tolist(),
+                    # "data_pressure": pressure_detail.tolist(),
                     "t": (t_off - t_off[0]).tolist(),
                     "frequency": result_container['results'][0]['frequencies'][index],
                     "type": "edc"
                 })
+                if 't' not in df.columns:
+                    df['t'] = (t_off - t_off[0]).tolist()
+                df[str(result_container['results'][0]['frequencies'][index]) + 'Hz'] = pressure_detail.tolist()
 
         with open(json_file_path, 'w') as new_result_json:
             new_result_json.write(
                 json.dumps(result_container, indent=4)
             )
+        with open(json_file_path.replace('.json', '_pressure.csv'), 'w', newline="") as pressure_result_csv:
+            df.to_csv(pressure_result_csv, index=False)
 
     et = time.time()  # end time
     elapsed_time = et - st

@@ -36,26 +36,30 @@ def dg_method(json_file_path=None):
             "4": 5,
             "5": 6,
         }  # predefined labels for boundary conditions. please assign an arbitrary int number to each type of boundary condition, e.g. hard wall, carpet, panel. The number should be unique for each type of boundary condition and should match the physical surface number in the .geo mesh file. The string should be the same as the material name in the .mat file (at least for the first few letters).
+
+        simulation_settings = result_container['simulationSettings']
     else:
         BC_labels = {
             "hard wall": 11,
             "carpet": 13,
             "panel": 14,
         }
+
     real_valued_impedance_boundary = [
         # {"label": 11, "RI": 0.9}
     ]  # extra labels for real-valued impedance boundary condition, if needed. The label should be the similar to the label in BC_labels. Since it's frequency-independent, only "RI", the real-valued reflection coefficient, is required. If not needed, just clear the elements of this list and keep the empty list.
-    mesh_name = "/Users/SilvinW/repositories/ra_ui_backend/edg-acoustics/examples/scenario1/senario1_coarser.msh"
-
-    # mesh_name = "senario1_coarser.msh"  # name of the mesh file. The mesh file should be in the same folder as this script.
-    freq_upper_limit = 200  # upper limit of the frequency content of the source signal in Hz. The source signal is a Gaussian pulse with a frequency content up to this limit.
 
     # Approximation degrees
     Nx = 4  # in space
     Nt = 4  # in time
-    CFL = 0.5  # CFL number, default is 0.5.
 
     if result_container:
+        # Obtain parameters from front end
+        CFL = simulation_settings['cfl']
+        freq_upper_limit = simulation_settings['freq_upper_limit']
+
+        impulse_length = simulation_settings['dg_ir_length']  # total simulation time in seconds
+
         monopole_xyz = numpy.array([
             result_container["results"][0]['sourceX'],
             result_container["results"][0]['sourceY'],
@@ -68,6 +72,11 @@ def dg_method(json_file_path=None):
         mesh_filename = result_container['msh_path']
 
     else:
+        CFL = 0.5  # CFL number, default is 0.5.
+        freq_upper_limit = 200  # upper limit of the frequency content of the source signal in Hz. The source signal is a Gaussian pulse with a frequency content up to this limit.
+        
+        impulse_length = 0.1  # total simulation time in seconds
+
         monopole_xyz = numpy.array([3.04, 2.59, 1.62])  # x,y,z coordinate of the source in the room
 
         recx = numpy.array([4.26])
@@ -78,7 +87,8 @@ def dg_method(json_file_path=None):
         mesh_filename = "/Users/SilvinW/repositories/ra_ui_backend/edg-acoustics/examples/scenario1/scenario1_coarser.msh"
 
 
-    impulse_length = 0.1  # total simulation time in seconds
+
+
     save_every_Nstep = 10  # save thce results every N steps
     temporary_save_Nstep = 500  # save the results every N steps temporarily during the simulation. The temporary results will be saved in the root directory of this repo.
 

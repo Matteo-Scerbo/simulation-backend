@@ -7,11 +7,81 @@ import gmsh
 
 import json
 
+import numpy as np
+from math import log, sqrt
+
 import importlib
 import edg_acoustics
 print(edg_acoustics.__file__)
 
 # endregion
+
+# Absorption term for boundary conditions
+def abs_term(th, c0, abscoeff_list):
+    Absx_array = np.array([])
+    for abs_coeff in abscoeff_list:
+        # print(abs_coeff)
+        if th == 1:
+            Absx = (c0 * abs_coeff) / 4  # Sabine
+        elif th == 2:
+            Absx = (c0 * (-log(1 - abs_coeff))) / 4  # Eyring
+        elif th == 3:
+            Absx = (c0 * abs_coeff) / (2 * (2 - abs_coeff))  # Modified by Xiang
+        Absx_array = np.append(Absx_array, Absx)
+    return Absx_array
+
+
+def surface_materials(result_container, c0):
+    vGroups = gmsh.model.getPhysicalGroups(-1)  # these are the entity tag and physical groups in the msh file.
+    vGroupsNames = []  # these are the entity tag and physical groups in the msh file + their names
+    for iGroup in vGroups:
+        dimGroup = iGroup[0]  # entity tag: 1 lines, 2 surfaces, 3 volumes (1D, 2D or 3D)
+        tagGroup = iGroup[1]  # physical tag group (depending on material properties defined in SketchUp)
+        namGroup = gmsh.model.getPhysicalName(dimGroup,
+                                            tagGroup)  # names of the physical groups defined in SketchUp
+        alist = [dimGroup, tagGroup, namGroup]  # creates a list of the entity tag, physical tag group and name
+        # print(alist)
+        vGroupsNames.append(alist)
+
+    # Initialize a list to store surface tags and their absorption coefficients
+    surface_absorption = []  # initialization absorption term (alpha*surfaceofwall) for each wall of the room
+    triangle_face_absorption = []  # initialization absorption term for each triangle face at the boundary and per each wall
+    absorption_coefficient = {}
+
+    materialNames = []
+    for group in vGroupsNames:
+        if group[0] != 2:
+            continue
+        name_group = group[2]
+        name_split = name_group.split("$")
+        name_abs_coeff = name_split[0]
+        materialNames.append(name_abs_coeff)
+
+        abscoeff = result_container['absorption_coefficients'][name_abs_coeff]
+
+        abscoeff = abscoeff.split(",")
+        # abscoeff = [float(i) for i in abscoeff][-1] #for one frequency
+        abscoeff_list = [float(i) for i in abscoeff]  # for multiple frequencies
+
+        physical_tag = group[1]  # Get the physical group tag
+        entities = gmsh.model.getEntitiesForPhysicalGroup(2,
+                                                        physical_tag)  # Retrieve all the entities in this physical group (the entities are the number of walls in the physical group)
+
+        Abs_term = abs_term(3, c0,
+                            abscoeff_list)  # calculates the absorption term based on the type of boundary condition th
+        for entity in entities:
+            absorption_coefficient[entity] = abscoeff_list
+            surface_absorption.append(
+                (entity, Abs_term))  # absorption term (alpha*surfaceofwall) for each wall of the room
+            surface_absorption = sorted(surface_absorption, key=lambda x: x[0])
+
+    for entity, Abs_term in surface_absorption:
+        triangle_faces, _ = gmsh.model.mesh.getElementsByType(2,
+                                                            entity)  # Get all the triangle faces for the current surface
+        triangle_face_absorption.extend(
+            [Abs_term] * len(triangle_faces))  # Append the Abs_term value for each triangle face
+
+    return materialNames, absorption_coefficient, surface_absorption, triangle_face_absorption
 
 
 def dg_method(json_file_path=None):
@@ -27,24 +97,35 @@ def dg_method(json_file_path=None):
     rho0 = 1.213  # density of air at 20 degrees Celsius in kg/m^3
     c0 = 343  # speed of sound in air at 20 degrees Celsius in m/s
 
-    if result_container:
-        BC_labels = {
-            "0": 1,
-            "1": 2,
-            "2": 3,
-            "3": 4,
-            "4": 5,
-            "5": 6,
-        }  # predefined labels for boundary conditions. please assign an arbitrary int number to each type of boundary condition, e.g. hard wall, carpet, panel. The number should be unique for each type of boundary condition and should match the physical surface number in the .geo mesh file. The string should be the same as the material name in the .mat file (at least for the first few letters).
 
+    if result_container:
         simulation_settings = result_container['simulationSettings']
+
+        mesh_filename = result_container['msh_path']
+        test = gmsh.open(mesh_filename)
+        
+        # FUNCTION CALLED HERE
+        materialNames, absorption_coefficient, surface_absorption, triangle_face_absorption = surface_materials(result_container, c0)
+        BC_labels = {}
+        RIvals = {}
+        i = 0
+        for ac in absorption_coefficient:
+            BC_labels[materialNames[i]] = ac
+
+            # r = sqrt(1-a)
+            RIvals[materialNames[i]] = sqrt (1 - sum(absorption_coefficient[ac])/len(absorption_coefficient[ac]))
+
+            i += 1
+
     else:
+        mesh_filename = "/Users/SilvinW/repositories/ra_ui_backend/edg-acoustics/examples/scenario1/scenario1_coarser.msh"
+
         BC_labels = {
             "hard wall": 11,
             "carpet": 13,
             "panel": 14,
         }
-
+    
     real_valued_impedance_boundary = [
         # {"label": 11, "RI": 0.9}
     ]  # extra labels for real-valued impedance boundary condition, if needed. The label should be the similar to the label in BC_labels. Since it's frequency-independent, only "RI", the real-valued reflection coefficient, is required. If not needed, just clear the elements of this list and keep the empty list.
@@ -69,7 +150,6 @@ def dg_method(json_file_path=None):
         recy = numpy.array([result_container["results"][0]['responses'][0]['y']])
         recz = numpy.array([result_container["results"][0]['responses'][0]['z']])
         rec = numpy.vstack((recx, recy, recz))  # dim:[3,n_rec]
-        mesh_filename = result_container['msh_path']
 
     else:
         CFL = 0.5  # CFL number, default is 0.5.
@@ -84,7 +164,6 @@ def dg_method(json_file_path=None):
         recz = numpy.array([1.62])
         rec = numpy.vstack((recx, recy, recz))  # dim:[3,n_rec]
         
-        mesh_filename = "/Users/SilvinW/repositories/ra_ui_backend/edg-acoustics/examples/scenario1/scenario1_coarser.msh"
 
 
 
@@ -100,9 +179,9 @@ def dg_method(json_file_path=None):
 
     # load Boundary conditions and parameters
     BC_para = []  # clear the BC_para list
-    for material, label in BC_labels.items():
+    for uid, label in BC_labels.items():
         # if material == "hard wall":
-        BC_para.append({"label": label, "RI": 1})
+        BC_para.append({"label": label, "RI": RIvals[uid]})
         # else:
         #     mat_files = glob.glob(f"/Users/SilvinW/repositories/ra_ui_backend/edg-acoustics/examples/scenario1/{material}*.mat")
 

@@ -20,6 +20,8 @@ from Diffusion_Module.FiniteVolumeMethod.FunctionClarity import *
 from Diffusion_Module.FiniteVolumeMethod.FunctionDefinition import *
 from Diffusion_Module.FiniteVolumeMethod.FunctionCentreTime import *
 
+from Diffusion_Module.FiniteVolumeMethod.CreateMeshFVM import generate_mesh
+
 import numpy as np
 import pandas as pd
 
@@ -123,7 +125,7 @@ def de_method(json_file_path=None):
     ###############################################################################
     # INITIALISE GMSH
     ###############################################################################
-    file_name = "C:\\Users\\20225521\\Desktop\\Room_acoustics\\ui_backend\\Diffusion\\FiniteVolumeMethod\\3x3x3.msh"  # Insert file name, msh file created from sketchUp and then gmsh
+    msh_file_path = "C:\\Users\\20225521\\Desktop\\Room_acoustics\\ui_backend\\Diffusion\\FiniteVolumeMethod\\3x3x3.msh"  # Insert file name, msh file created from sketchUp and then gmsh
 
     # gmsh.fltk.run() #run the file to see it in gmsh
     dim = -1  # dimensions of the entities, 0 for points, 1 for curves/edge/lines, 2 for surfaces, 3 for volumes, -1 for all the entities
@@ -135,6 +137,7 @@ def de_method(json_file_path=None):
     ###############################################################################
 
     if result_container:
+        simulation_settings = result_container["simulationSettings"]
         coord_source = [
             result_container["results"][0]['sourceX'],
             result_container["results"][0]['sourceY'],
@@ -146,9 +149,11 @@ def de_method(json_file_path=None):
             result_container["results"][0]['responses'][0]['y'],
             result_container["results"][0]['responses'][0]['z']
         ]
-        file_name = result_container['msh_path']
+        geo_file_path = result_container['geo_path']
+        msh_file_path = result_container['msh_path']
+        generate_mesh (geo_file_path, msh_file_path, 1) # TODO: make this dependent on the room dimensions. We don't need an lc of 1 meter at all times..
 
-    mesh = gmsh.open(file_name)  # open the file
+    mesh = gmsh.open(msh_file_path)  # open the file
 
     # Absorption term for boundary conditions
     def abs_term(th, abscoeff_list):
@@ -613,7 +618,13 @@ def de_method(json_file_path=None):
             RT_Sabine_band.append(RT_Sabine)
 
         sourceon_time = round(max(RT_Sabine_band), 1)  # time that the source is ON before interrupting [s]
-        recording_time = 2 * sourceon_time  # total time recorded for the calculation [s]
+        if result_container:
+            if simulation_settings["sim_len_type"] == "ir_length":
+                recording_time = sourceon_time + simulation_settings["de_ir_length"]
+            else:
+                recording_time = sourceon_time + (sourceon_time / 60 * simulation_settings["edt"])
+        else:
+            recording_time = 2 * sourceon_time  # total time recorded for the calculation [s]
 
         # Time resolution
         t = np.arange(0, recording_time, dt)  # mesh point in time
@@ -624,6 +635,9 @@ def de_method(json_file_path=None):
     # FUNCTION CALLED HERE
     RT_Sabine_band, sourceon_time, recording_time, t, recording_steps = rec_time()
 
+    print ("Source on time: " + str(sourceon_time))
+    print ("Total recording time: " + str(recording_time))
+    
     # %%
     ###############################################################################
     # CALCULATION OF DIFFUSION PARAMETERS
@@ -1105,7 +1119,7 @@ def de_method(json_file_path=None):
         w_rec_off_deriv_band = []
         p_rec_off_deriv_band = []
 
-        prevPercentDone = 0;
+        prevPercentDone = 0
 
         for iBand in range(nBands):
 
@@ -1218,7 +1232,7 @@ def de_method(json_file_path=None):
                                 json.dumps(result_container, indent=4)
                             )
 
-                prevPercentDone = percentDone;
+                prevPercentDone = percentDone
             
             w_new_band.append(w_new)
             w_rec_band.append(w_rec)

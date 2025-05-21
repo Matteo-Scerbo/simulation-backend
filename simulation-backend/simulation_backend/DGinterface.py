@@ -4,6 +4,9 @@ import glob
 import numpy
 import scipy.io
 import gmsh
+import shutil
+
+from Diffusion_Module.FiniteVolumeMethod.CreateMeshFVM import generate_mesh
 
 import json
 
@@ -100,8 +103,18 @@ def dg_method(json_file_path=None):
 
     if result_container:
         simulation_settings = result_container['simulationSettings']
+        freq_upper_limit = simulation_settings['freq_upper_limit']
 
         mesh_filename = result_container['msh_path']
+        geo_filename = result_container['geo_path']
+        uploads_folder = os.path.dirname(mesh_filename) ## directory of file
+
+        PPW = 2
+        minWavelength = c0/freq_upper_limit
+
+        print("lc = " + str(minWavelength / PPW))
+        generate_mesh(geo_filename, mesh_filename, minWavelength / PPW)
+
         test = gmsh.open(mesh_filename)
         
         # FUNCTION CALLED HERE
@@ -137,7 +150,6 @@ def dg_method(json_file_path=None):
     if result_container:
         # Obtain parameters from front end
         CFL = simulation_settings['cfl']
-        freq_upper_limit = simulation_settings['freq_upper_limit']
 
         impulse_length = simulation_settings['dg_ir_length']  # total simulation time in seconds
 
@@ -239,10 +251,15 @@ def dg_method(json_file_path=None):
     )
 
     results = edg_acoustics.Monopole_postprocessor(sim, 1)
+
     results.apply_correction()
 
-    result_filename = os.path.join(os.path.split(os.path.abspath(__file__))[0], result_filename)
+    # if result_container:
+    #     result_container['results'][0]['responses'][0]['IR']['IR_Uncorrected'] = results.IRold
+
+    result_filename = os.path.join(uploads_folder, result_filename)
     results.write_results(result_filename, "mat")
+
     # load newresult.npy
     # data = numpy.load("./examples/newresult.npz", allow_pickle=True)
     # tempdata = numpy.load("./results_on_the_run.npz", allow_pickle=True)

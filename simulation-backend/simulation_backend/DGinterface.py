@@ -63,8 +63,14 @@ def surface_materials(result_container, c0):
         abscoeff = result_container['absorption_coefficients'][name_abs_coeff]
 
         abscoeff = abscoeff.split(",")
-        # abscoeff = [float(i) for i in abscoeff][-1] #for one frequency
-        abscoeff_list = [float(i) for i in abscoeff]  # for multiple frequencies
+        
+        if result_container:
+            simulation_settings = result_container['simulationSettings'];
+            if simulation_settings['de_absorption_override'] == 'yes':
+                abscoeff_list = [1 - simulation_settings['de_R']**2] * len(abscoeff)
+            else:
+                # abscoeff = [float(i) for i in abscoeff][-1] #for one frequency
+                abscoeff_list = [float(i) for i in abscoeff]  # for multiple frequencies
 
         physical_tag = group[1]  # Get the physical group tag
         entities = gmsh.model.getEntitiesForPhysicalGroup(2,
@@ -107,7 +113,7 @@ def dg_method(json_file_path=None):
         mesh_filename = result_container['msh_path']
         geo_filename = result_container['geo_path']
         
-        c0 = simulation_settings['c0'] # speed of sound in air
+        c0 = simulation_settings['dg_c0'] # speed of sound in air
 
         uploads_folder = os.path.dirname(mesh_filename) ## directory of file
 

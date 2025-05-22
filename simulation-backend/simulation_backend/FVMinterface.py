@@ -138,7 +138,7 @@ def de_method(json_file_path=None):
     if result_container:
         simulation_settings = result_container["simulationSettings"]
         
-        c0 = simulation_settings['c0']
+        c0 = simulation_settings['de_c0']
 
         coord_source = [
             result_container["results"][0]['sourceX'],
@@ -205,7 +205,12 @@ def de_method(json_file_path=None):
 
             abscoeff = abscoeff.split(",")
             # abscoeff = [float(i) for i in abscoeff][-1] #for one frequency
-            abscoeff_list = [float(i) for i in abscoeff]  # for multiple frequencies
+            
+            if result_container:
+                if simulation_settings['de_absorption_override'] == 'yes':
+                    abscoeff_list = [1 - simulation_settings['de_R']**2] * len(abscoeff)
+                else:
+                    abscoeff_list = [float(i) for i in abscoeff]  # for multiple frequencies
 
             physical_tag = group[1]  # Get the physical group tag
             entities = gmsh.model.getEntitiesForPhysicalGroup(2,

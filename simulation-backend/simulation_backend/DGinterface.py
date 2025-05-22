@@ -66,8 +66,8 @@ def surface_materials(result_container, c0):
         
         if result_container:
             simulation_settings = result_container['simulationSettings'];
-            if simulation_settings['de_absorption_override'] == 'yes':
-                abscoeff_list = [1 - simulation_settings['de_R']**2] * len(abscoeff)
+            if simulation_settings['dg_absorption_override'] == 'yes':
+                abscoeff_list = [1 - simulation_settings['dg_R']**2] * len(abscoeff)
             else:
                 # abscoeff = [float(i) for i in abscoeff][-1] #for one frequency
                 abscoeff_list = [float(i) for i in abscoeff]  # for multiple frequencies
@@ -257,6 +257,7 @@ def dg_method(json_file_path=None):
         delta_step=save_every_Nstep,
         save_step=temporary_save_Nstep,
         format="mat",
+        json_file_path=json_file_path
     )
 
     results = edg_acoustics.Monopole_postprocessor(sim, 1)

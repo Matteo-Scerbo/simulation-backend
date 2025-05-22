@@ -98,7 +98,6 @@ def dg_method(json_file_path=None):
     # Block 1: User input
     # --------------------
     rho0 = 1.213  # density of air at 20 degrees Celsius in kg/m^3
-    c0 = 343  # speed of sound in air at 20 degrees Celsius in m/s
 
 
     if result_container:
@@ -107,6 +106,9 @@ def dg_method(json_file_path=None):
 
         mesh_filename = result_container['msh_path']
         geo_filename = result_container['geo_path']
+        
+        c0 = simulation_settings['c0'] # speed of sound in air
+
         uploads_folder = os.path.dirname(mesh_filename) ## directory of file
 
         PPW = 2
@@ -149,8 +151,7 @@ def dg_method(json_file_path=None):
 
     if result_container:
         # Obtain parameters from front end
-        CFL = simulation_settings['cfl']
-
+        CFL = 1
         impulse_length = simulation_settings['dg_ir_length']  # total simulation time in seconds
 
         monopole_xyz = numpy.array([
@@ -165,6 +166,8 @@ def dg_method(json_file_path=None):
 
     else:
         CFL = 0.5  # CFL number, default is 0.5.
+        c0 = 343  # speed of sound in air at 20 degrees Celsius in m/s
+
         freq_upper_limit = 200  # upper limit of the frequency content of the source signal in Hz. The source signal is a Gaussian pulse with a frequency content up to this limit.
         
         impulse_length = 0.1  # total simulation time in seconds
@@ -254,6 +257,17 @@ def dg_method(json_file_path=None):
 
     results.apply_correction()
 
+    # if result_container:
+    #     try:
+    #         impulse_response = results.IRnew
+    #         with open(json_file_path, 'r', encoding="utf-8") as file:
+    #             data = json.load(file)
+    #         data['simulationSettings'] = solverSettings['simulationSettings']
+    #         with open(json_file_path, 'w', encoding="utf-8") as file:
+    #             json.dump(data, file, indent=4)
+    #     except Exception:
+    #         print("Error saving the simulation solver settings")
+    #         raise Exception("Error saving the simulation solver settings")
     # if result_container:
     #     result_container['results'][0]['responses'][0]['IR']['IR_Uncorrected'] = results.IRold
 

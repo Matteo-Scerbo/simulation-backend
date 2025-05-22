@@ -106,7 +106,6 @@ def de_method(json_file_path=None):
     # FIXED INPUTS
     ###############################################################################
     # General settings
-    c0 = 343  # adiabatic speed of sound [m.s^-1]
 
     # Set initial condition - Source Info (interrupted method)
     Ws = 0.01  # Source point power [Watts] interrupted after "sourceon_time" seconds; 10^-2 W => correspondent to 100dB
@@ -138,6 +137,9 @@ def de_method(json_file_path=None):
 
     if result_container:
         simulation_settings = result_container["simulationSettings"]
+        
+        c0 = simulation_settings['c0']
+
         coord_source = [
             result_container["results"][0]['sourceX'],
             result_container["results"][0]['sourceY'],
@@ -152,6 +154,8 @@ def de_method(json_file_path=None):
         geo_file_path = result_container['geo_path']
         msh_file_path = result_container['msh_path']
         generate_mesh (geo_file_path, msh_file_path, 1) # TODO: make this dependent on the room dimensions. We don't need an lc of 1 meter at all times..
+    else:
+        c0 = 343  # adiabatic speed of sound [m.s^-1]
 
     mesh = gmsh.open(msh_file_path)  # open the file
 

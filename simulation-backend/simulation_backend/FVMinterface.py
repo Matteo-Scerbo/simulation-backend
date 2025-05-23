@@ -134,11 +134,16 @@ def de_method(json_file_path=None):
     ###############################################################################
     # Integraiton changes added by Hassan: ;) Do not modify any of these please!
     ###############################################################################
-
+    use_default = True
+    
     if result_container:
         simulation_settings = result_container["simulationSettings"]
-        
-        c0 = simulation_settings['de_c0']
+        use_default = result_container["settingsPreset"] == "Default"
+
+        if use_default:
+            c0 = 343
+        else:
+            c0 = simulation_settings['de_c0']
 
         coord_source = [
             result_container["results"][0]['sourceX'],
@@ -207,10 +212,13 @@ def de_method(json_file_path=None):
             # abscoeff = [float(i) for i in abscoeff][-1] #for one frequency
             
             if result_container:
-                if simulation_settings['de_absorption_override'] == 'yes':
-                    abscoeff_list = [1 - simulation_settings['de_R']**2] * len(abscoeff)
-                else:
+                if use_default:
                     abscoeff_list = [float(i) for i in abscoeff]  # for multiple frequencies
+                else:
+                    if simulation_settings['de_absorption_override'] == 'yes':
+                        abscoeff_list = [1 - simulation_settings['de_R']**2] * len(abscoeff)
+                    else:
+                        abscoeff_list = [float(i) for i in abscoeff]  # for multiple frequencies
 
             physical_tag = group[1]  # Get the physical group tag
             entities = gmsh.model.getEntitiesForPhysicalGroup(2,
@@ -628,10 +636,13 @@ def de_method(json_file_path=None):
 
         sourceon_time = round(max(RT_Sabine_band), 1)  # time that the source is ON before interrupting [s]
         if result_container:
-            if simulation_settings["sim_len_type"] == "ir_length":
-                recording_time = sourceon_time + simulation_settings["de_ir_length"]
+            if use_default:
+                recording_time = sourceon_time + (sourceon_time / 60 * 35)
             else:
-                recording_time = sourceon_time + (sourceon_time / 60 * simulation_settings["edt"])
+                if simulation_settings["sim_len_type"] == "ir_length":
+                    recording_time = sourceon_time + simulation_settings["de_ir_length"]
+                else:
+                    recording_time = sourceon_time + (sourceon_time / 60 * simulation_settings["edt"])
         else:
             recording_time = 2 * sourceon_time  # total time recorded for the calculation [s]
 

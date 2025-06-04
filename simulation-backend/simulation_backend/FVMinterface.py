@@ -423,10 +423,7 @@ def de_method(json_file_path=None):
                 if tt != tet:
                     txt[tet].append(int(tt - (voluEl[0] - 1)))  # volumes neighbours to each volume
         for values in txt.values():
-            if len(values) == 2:  # if there are only two tetrahedrons neighbours it means that the other two are boundary tetrahedrons, therefore add a zero for each tetrahedron missing
-                values.append(0)
-                values.append(0)
-            if len(values) == 3:  # if there are only three tetrahedrons neighbours it means that the other one is a boundary tetrahedron, therefore add a zero
+            while len(values) < 4:  # if there are less than 4 tetrahedron neighbours it means that the others are boundary tetrahedrons, therefore add a zero for each tetrahedron missing
                 values.append(0)
 
         neighbourVolume = np.array(

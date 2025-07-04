@@ -11,26 +11,24 @@ Created on Wed Aug  2 16:12:40 2023
 ###############################################################################
 # Code developed by Ilaria Fichera for the analysis of the FVM method adapted solving the 3D diffusion equation with one intermittent omnidirectional sound source
 # Import modules
-import math
+import itertools
+import json
+import os
+import pickle
+import time
+import types
+import pandas as pd
+
 from math import ceil
 from math import log
+
+import gmsh
 
 from Diffusion_Module.FiniteVolumeMethod.FunctionRT import t60_decay
 from Diffusion_Module.FiniteVolumeMethod.FunctionClarity import *
 from Diffusion_Module.FiniteVolumeMethod.FunctionDefinition import *
 from Diffusion_Module.FiniteVolumeMethod.FunctionCentreTime import *
-
 from Diffusion_Module.FiniteVolumeMethod.CreateMeshFVM import generate_mesh
-
-import numpy as np
-import pandas as pd
-
-import time as time
-import gmsh
-import os
-import json
-import pickle
-import types
 
 # Silvin: debugging
 import logging

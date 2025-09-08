@@ -139,7 +139,7 @@ def dg_method(json_file_path=None):
             i += 1
 
     else:
-        mesh_filename = "/Users/SilvinW/repositories/ra_ui_backend/edg-acoustics/examples/scenario1/scenario1_coarser.msh"
+        mesh_filename = "/Users/SilvinW/repositories/backend/edg-acoustics/examples/scenario1/scenario1_coarser.msh"
 
         BC_labels = {
             "hard wall": 11,
@@ -204,7 +204,7 @@ def dg_method(json_file_path=None):
         # if material == "hard wall":
         BC_para.append({"label": label, "RI": RIvals[uid]})
         # else:
-        #     mat_files = glob.glob(f"/Users/SilvinW/repositories/ra_ui_backend/edg-acoustics/examples/scenario1/{material}*.mat")
+        #     mat_files = glob.glob(f"/Users/SilvinW/repositories/backend/edg-acoustics/examples/scenario1/{material}*.mat")
 
         #     # if mat_files is empty, raise an error
         #     if not mat_files:

@@ -6,7 +6,7 @@ from simulation_backend.DGinterface import dg_method
 # Currently valid strings: DE, DG
 simulation_method_to_test = "DG" 
 
-JSONtoTest = "/Users/SilvinW/repositories/ra_ui_backend/uploads/MeasurementRoom_6ac4df41866940688befd2e948fa8d22_1.json"
+JSONtoTest = "/Users/SilvinW/repositories/backend/uploads/MeasurementRoom_6ac4df41866940688befd2e948fa8d22_1.json"
 match simulation_method_to_test:
     case "DE":
         gmsh.initialize()  # Initialize msh file

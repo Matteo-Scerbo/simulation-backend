@@ -105,7 +105,7 @@ def time_windowing(signal, Nleft, Nright):
     return signal2
 
 # DataTddg = loadmat('/Users/SilvinW/Library/CloudStorage/OneDrive-TUEindhoven/Files Wouter/wouter1ir.mat')["DataTddg"][0][0]
-DataTddg = loadmat("/Users/SilvinW/repositories/CHORAS/ra_ui_backend/uploads/result.mat")
+DataTddg = loadmat("/Users/SilvinW/repositories/CHORAS/backend/uploads/result.mat")
 
 # Simulation Parameters
 half_width = DataTddg["halfwidth"][0][0]

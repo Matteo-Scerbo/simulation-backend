@@ -3,7 +3,7 @@ import json
 
 
 def find_input_file_in_subfolders(
-    dirname=os.path.dirname(__file__), file_name="MeasurementRoom.json"
+    dirname=os.path.dirname(__file__), file_name="exampleInput.json"
 ):
 
     for subdir, dirs, files in os.walk(dirname):

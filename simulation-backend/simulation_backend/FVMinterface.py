@@ -43,6 +43,10 @@ logger = logging.getLogger(__name__)
 
 
 def de_method(json_file_path=None):
+
+    if not gmsh.is_initialized():
+        gmsh.initialize()
+
     st = time.time()  # start time of calculation
     result_container = {}
     if json_file_path is not None:
@@ -173,7 +177,6 @@ def de_method(json_file_path=None):
     else:
         c0 = 343  # adiabatic speed of sound [m.s^-1]
 
-    gmsh.initialize()
     mesh = gmsh.open(msh_file_path)  # open the file
 
     # Absorption term for boundary conditions
@@ -1842,7 +1845,7 @@ if __name__ == "__main__":
 
     # Load the input file
     file_name = find_input_file_in_subfolders(
-        os.path.dirname(__file__), "MeasurementRoomDE.json"
+        os.path.dirname(__file__), "exampleInput_DE.json"
     )
     json_tmp_file = load_tmp_from_input(file_name)
 

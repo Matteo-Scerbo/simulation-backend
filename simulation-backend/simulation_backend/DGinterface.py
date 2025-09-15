@@ -304,8 +304,8 @@ def dg_method(json_file_path=None):
         try:
             with open(json_file_path, "r", encoding="utf-8") as file:
                 data = json.load(file)
-            data["impulseResponseCorrected"] = results.IRnew.tolist()[0]
-            data["impulseResponseUncorrected"] = results.IRold.tolist()[0]
+            data["results"][0]["responses"][0]["receiverResults"] = results.IRnew.tolist()
+            data["results"][0]["responses"][0]["receiverResultsUncorrected"] = results.IRold.tolist()[0]
             with open(json_file_path, "w", encoding="utf-8") as file:
                 json.dump(data, file, indent=4)
 
@@ -333,7 +333,7 @@ if __name__ == "__main__":
 
     # Load the input file
     file_name = find_input_file_in_subfolders(
-        os.path.dirname(__file__), "MeasurementRoomDG.json"
+        os.path.dirname(__file__), "exampleInput_DG.json"
     )
     json_tmp_file = load_tmp_from_input(file_name)
 

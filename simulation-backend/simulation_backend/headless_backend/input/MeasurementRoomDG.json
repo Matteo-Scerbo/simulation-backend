@@ -45,7 +45,7 @@
     "simulationSettings": {
         "freq_upper_limit": 200,
         "dg_c0": 343,
-        "dg_ir_length": 0.1,
+        "dg_ir_length": 0.01,
         "dg_absorption_override": "no",
         "dg_R": 0.99
     },

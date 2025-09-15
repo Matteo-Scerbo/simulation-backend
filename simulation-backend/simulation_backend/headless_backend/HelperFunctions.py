@@ -8,8 +8,7 @@ def find_input_file_in_subfolders(
 
     for subdir, dirs, files in os.walk(dirname):
         for file in files:
-            # print os.path.join(subdir, file)
-            filepath = subdir + os.sep + file
+            filepath = os.path.join(subdir, file)
 
             if filepath.endswith(file_name):
                 print(f"{file_name} has been found")

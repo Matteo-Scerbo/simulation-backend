@@ -228,4 +228,3 @@ def de_method(json_file_path=None):
 
     # To save all current variables
     save('results.pkl')
-

@@ -15,9 +15,11 @@ from math import log, sqrt
 
 import importlib
 import edg_acoustics
+
 print(edg_acoustics.__file__)
 
 # endregion
+
 
 # Absorption term for boundary conditions
 def abs_term(th, c0, abscoeff_list):
@@ -35,20 +37,37 @@ def abs_term(th, c0, abscoeff_list):
 
 
 def surface_materials(result_container, c0):
-    vGroups = gmsh.model.getPhysicalGroups(-1)  # these are the entity tag and physical groups in the msh file.
-    vGroupsNames = []  # these are the entity tag and physical groups in the msh file + their names
+    vGroups = gmsh.model.getPhysicalGroups(
+        -1
+    )  # these are the entity tag and physical groups in the msh file.
+    vGroupsNames = (
+        []
+    )  # these are the entity tag and physical groups in the msh file + their names
     for iGroup in vGroups:
-        dimGroup = iGroup[0]  # entity tag: 1 lines, 2 surfaces, 3 volumes (1D, 2D or 3D)
-        tagGroup = iGroup[1]  # physical tag group (depending on material properties defined in SketchUp)
-        namGroup = gmsh.model.getPhysicalName(dimGroup,
-                                            tagGroup)  # names of the physical groups defined in SketchUp
-        alist = [dimGroup, tagGroup, namGroup]  # creates a list of the entity tag, physical tag group and name
+        dimGroup = iGroup[
+            0
+        ]  # entity tag: 1 lines, 2 surfaces, 3 volumes (1D, 2D or 3D)
+        tagGroup = iGroup[
+            1
+        ]  # physical tag group (depending on material properties defined in SketchUp)
+        namGroup = gmsh.model.getPhysicalName(
+            dimGroup, tagGroup
+        )  # names of the physical groups defined in SketchUp
+        alist = [
+            dimGroup,
+            tagGroup,
+            namGroup,
+        ]  # creates a list of the entity tag, physical tag group and name
         # print(alist)
         vGroupsNames.append(alist)
 
     # Initialize a list to store surface tags and their absorption coefficients
-    surface_absorption = []  # initialization absorption term (alpha*surfaceofwall) for each wall of the room
-    triangle_face_absorption = []  # initialization absorption term for each triangle face at the boundary and per each wall
+    surface_absorption = (
+        []
+    )  # initialization absorption term (alpha*surfaceofwall) for each wall of the room
+    triangle_face_absorption = (
+        []
+    )  # initialization absorption term for each triangle face at the boundary and per each wall
     absorption_coefficient = {}
 
     materialNames = []
@@ -60,44 +79,54 @@ def surface_materials(result_container, c0):
         name_abs_coeff = name_split[0]
         materialNames.append(name_abs_coeff)
 
-        abscoeff = result_container['absorption_coefficients'][name_abs_coeff]
+        abscoeff = result_container["absorption_coefficients"][name_abs_coeff]
 
         abscoeff = abscoeff.split(",")
-        
+
         if result_container:
-            simulation_settings = result_container['simulationSettings'];
-            if simulation_settings['dg_absorption_override'] == 'yes':
-                abscoeff_list = [1 - simulation_settings['dg_R']**2] * len(abscoeff)
+            simulation_settings = result_container["simulationSettings"]
+            if simulation_settings["dg_absorption_override"] == "yes":
+                abscoeff_list = [1 - simulation_settings["dg_R"] ** 2] * len(abscoeff)
             else:
                 # abscoeff = [float(i) for i in abscoeff][-1] #for one frequency
                 abscoeff_list = [float(i) for i in abscoeff]  # for multiple frequencies
 
         physical_tag = group[1]  # Get the physical group tag
-        entities = gmsh.model.getEntitiesForPhysicalGroup(2,
-                                                        physical_tag)  # Retrieve all the entities in this physical group (the entities are the number of walls in the physical group)
+        entities = gmsh.model.getEntitiesForPhysicalGroup(
+            2, physical_tag
+        )  # Retrieve all the entities in this physical group (the entities are the number of walls in the physical group)
 
-        Abs_term = abs_term(3, c0,
-                            abscoeff_list)  # calculates the absorption term based on the type of boundary condition th
+        Abs_term = abs_term(
+            3, c0, abscoeff_list
+        )  # calculates the absorption term based on the type of boundary condition th
         for entity in entities:
             absorption_coefficient[entity] = abscoeff_list
             surface_absorption.append(
-                (entity, Abs_term))  # absorption term (alpha*surfaceofwall) for each wall of the room
+                (entity, Abs_term)
+            )  # absorption term (alpha*surfaceofwall) for each wall of the room
             surface_absorption = sorted(surface_absorption, key=lambda x: x[0])
 
     for entity, Abs_term in surface_absorption:
-        triangle_faces, _ = gmsh.model.mesh.getElementsByType(2,
-                                                            entity)  # Get all the triangle faces for the current surface
+        triangle_faces, _ = gmsh.model.mesh.getElementsByType(
+            2, entity
+        )  # Get all the triangle faces for the current surface
         triangle_face_absorption.extend(
-            [Abs_term] * len(triangle_faces))  # Append the Abs_term value for each triangle face
+            [Abs_term] * len(triangle_faces)
+        )  # Append the Abs_term value for each triangle face
 
-    return materialNames, absorption_coefficient, surface_absorption, triangle_face_absorption
+    return (
+        materialNames,
+        absorption_coefficient,
+        surface_absorption,
+        triangle_face_absorption,
+    )
 
 
 def dg_method(json_file_path=None):
 
     result_container = {}
     if json_file_path is not None:
-        with open(json_file_path, 'r') as json_file:
+        with open(json_file_path, "r") as json_file:
             result_container = json.load(json_file)
 
     # --------------------
@@ -105,28 +134,32 @@ def dg_method(json_file_path=None):
     # --------------------
     rho0 = 1.213  # density of air at 20 degrees Celsius in kg/m^3
 
-
     if result_container:
-        simulation_settings = result_container['simulationSettings']
-        freq_upper_limit = simulation_settings['freq_upper_limit']
+        simulation_settings = result_container["simulationSettings"]
+        freq_upper_limit = simulation_settings["freq_upper_limit"]
 
-        mesh_filename = result_container['msh_path']
-        geo_filename = result_container['geo_path']
-        
-        c0 = simulation_settings['dg_c0'] # speed of sound in air
+        mesh_filename = result_container["msh_path"]
+        geo_filename = result_container["geo_path"]
 
-        uploads_folder = os.path.dirname(mesh_filename) ## directory of file
+        c0 = simulation_settings["dg_c0"]  # speed of sound in air
+
+        uploads_folder = os.path.dirname(mesh_filename)  ## directory of file
 
         PPW = 2
-        minWavelength = c0/freq_upper_limit
+        minWavelength = c0 / freq_upper_limit
 
         print("lc = " + str(minWavelength / PPW))
         generate_mesh(geo_filename, mesh_filename, minWavelength / PPW)
 
         test = gmsh.open(mesh_filename)
-        
+
         # FUNCTION CALLED HERE
-        materialNames, absorption_coefficient, surface_absorption, triangle_face_absorption = surface_materials(result_container, c0)
+        (
+            materialNames,
+            absorption_coefficient,
+            surface_absorption,
+            triangle_face_absorption,
+        ) = surface_materials(result_container, c0)
         BC_labels = {}
         RIvals = {}
         i = 0
@@ -134,7 +167,9 @@ def dg_method(json_file_path=None):
             BC_labels[materialNames[i]] = ac
 
             # r = sqrt(1-a)
-            RIvals[materialNames[i]] = sqrt (1 - sum(absorption_coefficient[ac])/len(absorption_coefficient[ac]))
+            RIvals[materialNames[i]] = sqrt(
+                1 - sum(absorption_coefficient[ac]) / len(absorption_coefficient[ac])
+            )
 
             i += 1
 
@@ -146,7 +181,7 @@ def dg_method(json_file_path=None):
             "carpet": 13,
             "panel": 14,
         }
-    
+
     real_valued_impedance_boundary = [
         # {"label": 11, "RI": 0.9}
     ]  # extra labels for real-valued impedance boundary condition, if needed. The label should be the similar to the label in BC_labels. Since it's frequency-independent, only "RI", the real-valued reflection coefficient, is required. If not needed, just clear the elements of this list and keep the empty list.
@@ -158,16 +193,20 @@ def dg_method(json_file_path=None):
     if result_container:
         # Obtain parameters from front end
         CFL = 1
-        impulse_length = simulation_settings['dg_ir_length']  # total simulation time in seconds
+        impulse_length = simulation_settings[
+            "dg_ir_length"
+        ]  # total simulation time in seconds
 
-        monopole_xyz = numpy.array([
-            result_container["results"][0]['sourceX'],
-            result_container["results"][0]['sourceY'],
-            result_container["results"][0]['sourceZ']
-        ])
-        recx = numpy.array([result_container["results"][0]['responses'][0]['x']])
-        recy = numpy.array([result_container["results"][0]['responses'][0]['y']])
-        recz = numpy.array([result_container["results"][0]['responses'][0]['z']])
+        monopole_xyz = numpy.array(
+            [
+                result_container["results"][0]["sourceX"],
+                result_container["results"][0]["sourceY"],
+                result_container["results"][0]["sourceZ"],
+            ]
+        )
+        recx = numpy.array([result_container["results"][0]["responses"][0]["x"]])
+        recy = numpy.array([result_container["results"][0]["responses"][0]["y"]])
+        recz = numpy.array([result_container["results"][0]["responses"][0]["z"]])
         rec = numpy.vstack((recx, recy, recz))  # dim:[3,n_rec]
 
     else:
@@ -175,19 +214,17 @@ def dg_method(json_file_path=None):
         c0 = 343  # speed of sound in air at 20 degrees Celsius in m/s
 
         freq_upper_limit = 200  # upper limit of the frequency content of the source signal in Hz. The source signal is a Gaussian pulse with a frequency content up to this limit.
-        
+
         impulse_length = 0.1  # total simulation time in seconds
 
-        monopole_xyz = numpy.array([3.04, 2.59, 1.62])  # x,y,z coordinate of the source in the room
+        monopole_xyz = numpy.array(
+            [3.04, 2.59, 1.62]
+        )  # x,y,z coordinate of the source in the room
 
         recx = numpy.array([4.26])
         recy = numpy.array([1.76])
         recz = numpy.array([1.62])
         rec = numpy.vstack((recx, recy, recz))  # dim:[3,n_rec]
-        
-
-
-
 
     save_every_Nstep = 10  # save thce results every N steps
     temporary_save_Nstep = 500  # save the results every N steps temporarily during the simulation. The temporary results will be saved in the root directory of this repo.
@@ -230,7 +267,6 @@ def dg_method(json_file_path=None):
         #     BC_para.append(material_dict)
     BC_para += real_valued_impedance_boundary
 
-
     # mesh_data_folder is the current folder by default
     # mesh_data_folder = os.path.split(os.path.abspath(__file__))[0]
     # mesh_filename = os.path.join(mesh_data_folder, mesh_name)
@@ -257,24 +293,25 @@ def dg_method(json_file_path=None):
         delta_step=save_every_Nstep,
         save_step=temporary_save_Nstep,
         format="mat",
-        json_file_path=json_file_path
+        json_file_path=json_file_path,
     )
 
     results = edg_acoustics.Monopole_postprocessor(sim, 1)
 
     results.apply_correction()
 
-    # if result_container:
-    #     try:
-    #         impulse_response = results.IRnew
-    #         with open(json_file_path, 'r', encoding="utf-8") as file:
-    #             data = json.load(file)
-    #         data['simulationSettings'] = solverSettings['simulationSettings']
-    #         with open(json_file_path, 'w', encoding="utf-8") as file:
-    #             json.dump(data, file, indent=4)
-    #     except Exception:
-    #         print("Error saving the simulation solver settings")
-    #         raise Exception("Error saving the simulation solver settings")
+    if result_container:
+        try:
+            with open(json_file_path, "r", encoding="utf-8") as file:
+                data = json.load(file)
+            data["impulseResponseCorrected"] = results.IRnew.tolist()[0]
+            data["impulseResponseUncorrected"] = results.IRold.tolist()[0]
+            with open(json_file_path, "w", encoding="utf-8") as file:
+                json.dump(data, file, indent=4)
+
+        except Exception:
+            print("Error saving the simulation solver settings")
+            raise Exception("Error saving the simulation solver settings")
     # if result_container:
     #     result_container['results'][0]['responses'][0]['IR']['IR_Uncorrected'] = results.IRold
 
@@ -286,10 +323,24 @@ def dg_method(json_file_path=None):
     # tempdata = numpy.load("./results_on_the_run.npz", allow_pickle=True)
     print("Finished!")
 
-if __name__ == '__main__':
-    gmsh.initialize()  # Initialize msh file
-    dg_method(
-        json_file_path=None)
 
+if __name__ == "__main__":
+    from simulation_backend import (
+        find_input_file_in_subfolders,
+        load_tmp_from_input,
+        save_results,
+    )
+
+    # Load the input file
+    file_name = find_input_file_in_subfolders(
+        os.path.dirname(__file__), "MeasurementRoomDG.json"
+    )
+    json_tmp_file = load_tmp_from_input(file_name)
+
+    # Run the method
+    gmsh.initialize()
+    dg_method(json_tmp_file)
     gmsh.finalize()
 
+    # Save the results to a separate file
+    save_results(json_tmp_file)

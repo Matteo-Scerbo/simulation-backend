@@ -1,0 +1,53 @@
+{
+    "absorption_coefficients": {
+        "b37dad22-5a9f-45d1-8c1e-78c3234d8a59": "0.6, 0.69, 0.71, 0.7, 0.63",
+        "2a78cd4f-7f21-4869-b618-6e5e13675165": "0.6, 0.69, 0.71, 0.7, 0.63",
+        "3d1fd2af-5f67-4906-9fda-8b1a087e15bb": "0.6, 0.69, 0.71, 0.7, 0.63",
+        "a2887546-d649-498f-93d2-1f500509d4c6": "0.6, 0.69, 0.71, 0.7, 0.63",
+        "019aa305-b0a7-4258-b8aa-e3b86da23c40": "0.6, 0.69, 0.71, 0.7, 0.63",
+        "3f1a939a-88b8-4e22-a655-909d5bad9134": "0.6, 0.69, 0.71, 0.7, 0.63"
+    },
+    "msh_path": "MeasurementRoom.msh",
+    "geo_path": "MeasurementRoom.geo",
+    "results": [
+        {
+            "percentage": 100,
+            "sourceX": 2,
+            "sourceY": 2,
+            "sourceZ": 1.5,
+            "resultType": "DG",
+            "frequencies": [
+                125,
+                250,
+                500,
+                1000,
+                2000
+            ],
+            "responses": [
+                {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1.5,
+                    "parameters": {
+                        "edt": [],
+                        "t20": [],
+                        "t30": [],
+                        "c80": [],
+                        "d50": [],
+                        "ts": [],
+                        "spl_t0_freq": []
+                    },
+                    "receiverResults": []
+                }
+            ]
+        }
+    ],
+    "simulationSettings": {
+        "freq_upper_limit": 200,
+        "dg_c0": 343,
+        "dg_ir_length": 0.1,
+        "dg_absorption_override": "no",
+        "dg_R": 0.99
+    },
+    "settingsPreset": "Advanced"
+}

@@ -8,15 +8,13 @@ def find_input_file_in_subfolders(
 
     for subdir, dirs, files in os.walk(dirname):
         for file in files:
-            # print os.path.join(subdir, file)
-            filepath = subdir + os.sep + file
+            filepath = os.path.join(subdir, file)
 
             if filepath.endswith(file_name):
                 print(f"{file_name} has been found")
                 return filepath
 
-    print(f"{file_name} has NOT been found")
-    return ""
+    raise FileNotFoundError(f"{file_name} has NOT been found")
 
 
 def load_tmp_from_input(json_input_path):

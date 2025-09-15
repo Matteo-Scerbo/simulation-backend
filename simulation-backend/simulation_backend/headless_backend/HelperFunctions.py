@@ -14,8 +14,7 @@ def find_input_file_in_subfolders(
                 print(f"{file_name} has been found")
                 return filepath
 
-    print(f"{file_name} has NOT been found")
-    return ""
+    raise FileNotFoundError(f"{file_name} has NOT been found")
 
 
 def load_tmp_from_input(json_input_path):

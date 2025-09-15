@@ -5,6 +5,18 @@ import json
 def find_input_file_in_subfolders(
     dirname=os.path.dirname(__file__), file_name="exampleInput.json"
 ):
+    """
+    (Recursively) finds a given file name in subfolders of a given dirname.
+    
+    Parameters
+    ----------
+    dirname : str
+        The directory to (recursively) search.
+
+    filename : str
+        The file to search.
+
+    """
 
     for subdir, dirs, files in os.walk(dirname):
         for file in files:
@@ -17,10 +29,24 @@ def find_input_file_in_subfolders(
     raise FileNotFoundError(f"{file_name} has NOT been found")
 
 
-def load_tmp_from_input(json_input_path):
+def create_tmp_from_input(json_input_file):
+    """
+    Creates a temporary json file by copying an input json file. The returned file is intended to be provided as an argument to a simulation method (interface) function, and will be filled with results.
+    
+    Parameters
+    ----------
+    json_input_file : str
+        The json file to create a temporary copy of.
+
+    Returns
+    ------
+    str
+        The path to the temporary json file.
+    """
+
     dirname = os.path.dirname(__file__)
 
-    with open(json_input_path, "r") as json_input:
+    with open(json_input_file, "r") as json_input:
         data = json.load(json_input)
 
     # Make the relative geometry file paths absolute
@@ -28,16 +54,39 @@ def load_tmp_from_input(json_input_path):
     data["geo_path"] = find_input_file_in_subfolders(dirname, data["geo_path"])
 
     # Prepare the output file by copying the input into it. We need a separate output file to not overwrite the input file
-    json_tmp_path = os.path.join(dirname, "MeasurementRoomTmp.json")
-    with open(json_tmp_path, "w") as json_output:
+    json_tmp_file = os.path.join(dirname, "MeasurementRoomTmp.json")
+    with open(json_tmp_file, "w") as json_output:
         json_output.write(json.dumps(data, indent=4))
 
-    return json_tmp_path
+    return json_tmp_file
 
 
-def save_results(json_tmp_path):
+def save_results(json_tmp_file):
+    """Saves the contents of a json file to the output folder.
+
+    Parameters
+    ----------
+    json_tmp_file : str
+        The json file to save the contents of.
+
+    """
+
     def get_unique_filename(base_name="results", extension="json", subfolder="output"):
-        """Generate a unique filename inside a subfolder relative to this script."""
+        """
+        Generate a unique filename inside a subfolder relative to this script.
+
+        Parameters
+        ----------
+        base_name : str
+            File name (excluding the extension).
+
+        extension : str
+            The file extension.
+
+        subfolder : str
+            The subfolder to check for the file(name)s.
+
+        """
         # Get the folder where the script is located
         script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -55,7 +104,7 @@ def save_results(json_tmp_path):
 
     file_name = get_unique_filename()
 
-    with open(json_tmp_path, "r") as j:
+    with open(json_tmp_file, "r") as j:
         data = json.load(j)
 
     with open(file_name, "w", encoding="utf-8") as f:

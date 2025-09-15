@@ -1839,7 +1839,7 @@ def de_method(json_file_path=None):
 if __name__ == "__main__":
     from simulation_backend import (
         find_input_file_in_subfolders,
-        load_tmp_from_input,
+        create_tmp_from_input,
         save_results,
     )
 
@@ -1847,7 +1847,7 @@ if __name__ == "__main__":
     file_name = find_input_file_in_subfolders(
         os.path.dirname(__file__), "exampleInput_DE.json"
     )
-    json_tmp_file = load_tmp_from_input(file_name)
+    json_tmp_file = create_tmp_from_input(file_name)
 
     # Run the method
     de_method(json_tmp_file)

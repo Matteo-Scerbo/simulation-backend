@@ -1,7 +1,7 @@
 # This file is for quick debugging purposes
 import gmsh
 
-from simulation_backend.FVMinterface import de_method
+from simulation_backend.DEinterface import de_method
 from simulation_backend.DGinterface import dg_method
 # Currently valid strings: DE, DG
 simulation_method_to_test = "DG" 

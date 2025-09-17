@@ -1,5 +1,5 @@
-from .FVMinterface import *
-from .DGinterface import *
-from .MyNewMethodInterface import *
+from .FVMinterface import de_method
+from .DGinterface import dg_method
+from .MyNewMethodInterface import mynewmethod_method
 
 from .headless_backend.HelperFunctions import *

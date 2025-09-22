@@ -1,15 +1,16 @@
-# This is the example interface file for connecting CHORAS to your method
+# This is the example interface file for connecting CHORAS to your simulation method
 
-# Import the relevant functions from
+# Import the relevant functions from your package (/submodule)
 from My_New_Method import simulation_method
 
 
-# This function will be called from app/services/simulation_service.py
+# This function will be called from app/services/simulation_service.py 
+# and the main function below
 def mynewmethod_method(json_file_path=None):
 
     print("mynewmethod_method: starting simulation")
 
-    # Call the appropriate function in your package
+    # Call the appropriate function(s) in your package to simulate
     simulation_method(json_file_path)
 
     print("mynewmethod_method: simulation done!")

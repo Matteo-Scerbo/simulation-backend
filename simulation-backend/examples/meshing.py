@@ -38,20 +38,32 @@ dim = 2
 # Different element types can be set using:
 element_type = gmsh.model.mesh.getElementType("triangle", 1)
 
-#
+# %%
+# In Gmsh, different parts of the geometry can be grouped using
+# *Physical Groups*. These can be used to identify different parts of the
+# geometry and assign boundary conditions or material properties.
+# The names of all surface groups can be accessed using:
 surface_group_tags = gmsh.model.getPhysicalGroups(dim=dim)
 surface_group_names = [
     gmsh.model.getPhysicalName(element_type, tag)
     for (element_type, tag) in surface_group_tags
 ]
 
-
-gmsh.model.mesh.generate(2)
+# %%
+# To generate the surface mesh from the surface geometry, the following
+# function can be used.
+gmsh.model.mesh.generate(dim)
 
 # %%
+# The Cartesian coordinates of all mesh nodes as well as the nodes belonging
+# to a specific surface group can be accessed using the following functions.
+# All functions return the ids of the nodes as well as their coordinates as
+# flat array.
+# Accordingly, the coordinates need to be reshaped to a (N, 3) array for
+# further processing.
 node_tags_all, coords_all, _ = gmsh.model.mesh.getNodes()
-node_tags_group, _ = gmsh.model.mesh.getNodesForPhysicalGroup(
-    dim, 1)
+node_tags_group, _ = gmsh.model.mesh.getNodesForPhysicalGroup(dim, 1)
+
 coords = coords_all.reshape((len(node_tags_all), 3))
 
 
@@ -71,14 +83,8 @@ tri_plotting = mtri.Triangulation(
     coords[:, 1],
     faces-1
 )
-# %%
+
 ax = plt.axes()
 ax.scatter(coords[faces-1, 0], coords[faces-1, 1], color="gray")
 ax.triplot(tri_plotting, color="gray")
-
-# %%
-surface_group_tags = gmsh.model.getPhysicalGroups(dim=dim)
-surface_group_names = [
-    gmsh.model.getPhysicalName(element_type, tag)
-    for (element_type, tag) in surface_group_tags
-]
+plt.show()

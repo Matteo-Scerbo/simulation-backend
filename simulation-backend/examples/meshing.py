@@ -55,28 +55,33 @@ surface_group_names = [
 gmsh.model.mesh.generate(dim)
 
 # %%
-# The Cartesian coordinates of all mesh nodes as well as the nodes belonging
-# to a specific surface group can be accessed using the following functions.
+# The Cartesian coordinates of all mesh nodes can be accessed using the
+# following functions.
 # All functions return the ids of the nodes as well as their coordinates as
 # flat array.
 # Accordingly, the coordinates need to be reshaped to a (N, 3) array for
 # further processing.
 node_tags_all, coords_all, _ = gmsh.model.mesh.getNodes()
-node_tags_group, _ = gmsh.model.mesh.getNodesForPhysicalGroup(dim, 1)
-
 coords = coords_all.reshape((len(node_tags_all), 3))
 
 
 # %%
-dim_tags = gmsh.model.getEntitiesForPhysicalName("ceiling")
-dim, tag = dim_tags[0]
+# To access the nodes belonging to a specific surface group using their name,
+# the following functions can be used to access the node ids for the triangular
+# surface mesh elements.
+# Note that the node ids start at 1 instead of python's indexing which starts
+# at 0.
+mesh_kind = 3
+dim_tags = gmsh.model.getEntitiesForPhysicalName(surface_group_names[0])
+_, node_tags_group = dim_tags[0]
 
+face_nodes = gmsh.model.mesh.getElementFaceNodes(
+    dim, mesh_kind, tag=node_tags_group)
+faces = np.reshape(face_nodes, (len(face_nodes) // mesh_kind, mesh_kind))
 # %%
-node_tags_all, coords_all, _ = gmsh.model.mesh.getNodes(dim)
-face_nodes = gmsh.model.mesh.getElementFaceNodes(dim, 3, tag=tag)
-faces = np.reshape(face_nodes, (len(face_nodes) // 3, 3))
-# %%
-face_nodes = np.sort(face_nodes)
+# The mesh of the first surface group can be visualized using matplotlib.
+# Note again that the node ids start at 1, hence the need to subtract 1 for
+# numpy and matplotlib indexing.
 
 tri_plotting = mtri.Triangulation(
     coords[:, 0],

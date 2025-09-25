@@ -279,14 +279,7 @@ def pyroomacoustics_method(json_file_path=None):
     # Get the RIRs for the first source and first microphone
     rir = simulation_setup.rir[0][0]
 
-    # Example: Save the RIR and reverberant castanets as a WAV file using pyfar
-    import pyfar as pf
-    rir_pf = pf.Signal(rir, simulation_setup.fs)
-    pf.io.write_audio(rir_pf, "example_rir.wav")
-    castanets = pf.signals.files.castanets(sampling_rate=simulation_setup.fs)
-    castanets_audio = pf.dsp.convolve(rir_pf, castanets, mode="full")
-    pf.io.write_audio(castanets_audio, "reverberant_castanets.wav")
-
+    # Export the RIRs to the input data structure
     export_rir_to_input(json_file_path, rir)
 
     print("pyroomacoustics_method: simulation done!")

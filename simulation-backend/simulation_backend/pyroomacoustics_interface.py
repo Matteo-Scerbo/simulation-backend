@@ -185,6 +185,55 @@ def get_receiver_positions(input_data):
     return receiver_pos
 
 
+def set_default_simulation_settings(input_data):
+    """Set default simulation settings if not provided in input data.
+
+    Parameters
+    ----------
+    input_data : dict
+        Input data as a dictionary.
+
+    """
+    if 'simulationSettings' not in input_data:
+        input_data['simulationSettings'] = {}
+
+    settings = input_data['simulationSettings']
+
+    if 'image_source_order' not in settings:
+        settings['image_source_order'] = 2
+        warnings.warn(
+            "Image source order not specified. "
+            "Defaulting to 2nd order reflections.",
+            stacklevel=2
+        )
+
+    if 'sampling_rate' not in settings:
+        settings['sampling_rate'] = 20000
+        warnings.warn(
+            "Sampling rate not specified. "
+            "Defaulting to 20000 Hz.",
+            stacklevel=2
+        )
+
+    if 'ray_tracing' not in settings:
+        settings['ray_tracing'] = True
+        warnings.warn(
+            "Ray tracing setting not specified. "
+            "Defaulting to True.",
+            stacklevel=2
+        )
+
+    if 'air_absorption' not in settings:
+        settings['air_absorption'] = True
+        warnings.warn(
+            "Air absorption setting not specified. "
+            "Defaulting to True.",
+            stacklevel=2
+        )
+
+    return input_data
+
+
 def setup_simulation(json_file_path, walls):
     """Set up the pyroomacoustics simulation based on the JSON file.
 

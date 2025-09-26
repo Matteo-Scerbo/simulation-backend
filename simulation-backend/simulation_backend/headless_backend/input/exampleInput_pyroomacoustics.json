@@ -11,8 +11,10 @@
     "msh_path": "MeasurementRoom.msh",
     "geo_path": "MeasurementRoom.geo",
     "simulationSettings": {
-        "mnm_1": 0.5,
-        "mnm_2": 50.0
+        "image_source_order": 2,
+        "sampling_rate": 20000,
+        "ray_tracing": true,
+        "air_absorption": true
     },
     "results": [
         {

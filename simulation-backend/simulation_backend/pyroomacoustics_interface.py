@@ -258,10 +258,10 @@ def setup_simulation(json_file_path, walls):
     input_data = read_json_input(json_file_path)
     extended_input_data = set_default_simulation_settings(input_data)
 
-    sampling_rate = extended_input_data['simulationSettings'].get('sampling_rate', 20000)
-    image_source_order = extended_input_data['simulationSettings'].get('image_source_order', 2)
-    ray_tracing = extended_input_data['simulationSettings'].get('ray_tracing', True)
-    air_absorption = extended_input_data['simulationSettings'].get('air_absorption', True)
+    sampling_rate = extended_input_data['simulationSettings'].get('sampling_rate')
+    image_source_order = extended_input_data['simulationSettings'].get('image_source_order')
+    ray_tracing = extended_input_data['simulationSettings'].get('ray_tracing')
+    air_absorption = extended_input_data['simulationSettings'].get('air_absorption')
 
     room = pra.Room(
         walls,

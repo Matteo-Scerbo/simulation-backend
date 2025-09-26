@@ -3,6 +3,8 @@
 import pyroomacoustics as pra
 import gmsh
 import numpy as np
+import warnings
+
 
 from simulation_backend import (
     find_input_file_in_subfolders,

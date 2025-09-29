@@ -6,13 +6,6 @@ import numpy as np
 import warnings
 
 
-from simulation_backend import (
-    find_input_file_in_subfolders,
-    create_tmp_from_input,
-    save_results,
-)
-
-
 def read_json_input(json_file_path):
     """Read the input JSON file.
 
@@ -342,22 +335,17 @@ def pyroomacoustics_method(json_file_path=None):
 
 if __name__ == "__main__":
     import os
-
-    from simulation_backend import (
-        find_input_file_in_subfolders,
-        create_tmp_from_input,
-        save_results,
-    )
+    import simulation_backend
 
     # Load the input file
-    file_name = find_input_file_in_subfolders(
+    file_name = simulation_backend.find_input_file_in_subfolders(
         os.path.dirname(__file__), "exampleInput_pyroomacoustics.json"
     )
-    json_tmp_file = create_tmp_from_input(file_name)
+    json_tmp_file = simulation_backend.create_tmp_from_input(file_name)
 
     # Run the method
     print(f"Created temporary settings file: {json_tmp_file}")
     pyroomacoustics_method(json_tmp_file)
 
     # Save the results to a separate file
-    save_results(json_tmp_file)
+    simulation_backend.save_results(json_tmp_file)

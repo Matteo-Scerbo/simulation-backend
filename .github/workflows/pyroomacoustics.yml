@@ -7,7 +7,7 @@ on:
 
 jobs:
   uv-test:
-    name: python
+    name: Pytest for the pyroomacoustics runner
     runs-on: ubuntu-latest
 
     steps:

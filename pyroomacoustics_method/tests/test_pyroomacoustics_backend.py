@@ -5,10 +5,11 @@ import numpy as np
 import numpy.testing as npt
 import os
 import json
-import simulation_backend.pyroomacoustics_method.pyroomacoustics_interface as pra_interface
 import tempfile
 from pathlib import Path
 import shutil
+
+import pyroomacoustics_interface as pra_interface
 
 
 def default_data_path():
@@ -94,7 +95,9 @@ def test_export_rir_to_input(create_temporary_input_file):
 
 def test_run_simulation(create_temporary_input_file):
     """Run the full simulation pipeline."""
-    pra_interface.pyroomacoustics_method(create_temporary_input_file)
+    interface = pra_interface.PyroomacousticsMethod()
+    interface.run_simulation(
+        create_temporary_input_file)
 
     with open(create_temporary_input_file, 'r') as f:
         data = json.load(f)

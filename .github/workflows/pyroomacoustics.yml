@@ -1,0 +1,23 @@
+name: Pyroomacoustics Method CI
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  uv-test:
+    name: python
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+    steps:
+      - name: Run test for pyroomacoustics method
+        run: |
+          cd pyroomacoustics_method
+          uv run --extra tests pytest tests/test_pyroomacoustics_backend.py

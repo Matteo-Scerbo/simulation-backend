@@ -8,7 +8,11 @@ import os
 from pathlib import Path
 import json
 
-from simulation_method_interface import SimulationMethod
+# Support both package and script execution.
+try:
+    from .utils import SimulationMethod, save_results
+except ImportError:
+    from utils import SimulationMethod, save_results
 
 class PyroomacousticsMethod(SimulationMethod):
     def __init__(self):
@@ -43,7 +47,7 @@ class PyroomacousticsMethod(SimulationMethod):
 
         print("pyroomacoustics_method: simulation done!")
 
-    
+
 def read_json_input(json_file_path):
     """Read the input JSON file.
 
@@ -345,11 +349,6 @@ def export_rir_to_input(json_file_path, rir):
 
 
 if __name__ == "__main__":
-
-    from HelperFunctions import (
-            save_results,
-        )
-
     # Will not work! JSON file structure expected in the PyRoomAcoustics
     # interface does not match the JSON created by the backend
     json_file_path = os.environ.get("JSON_PATH")

@@ -8,7 +8,7 @@ import shutil
 from acousticDE.FiniteVolumeMethod.CreateMeshFVM import generate_mesh
 
 # Support both package and script execution.
-from utils import SimulationMethod
+from .definition import SimulationMethod
 
 import json
 import numpy as np

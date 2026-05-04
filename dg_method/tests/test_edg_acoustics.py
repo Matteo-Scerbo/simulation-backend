@@ -3,10 +3,11 @@ import shutil
 import pytest
 import tempfile
 from pathlib import Path
-from simulation_backend.dg_method.DGinterface import dg_method
-import json
 import gmsh
+import json
 import numpy as np
+
+from dg_interface import DGinterface
 
 
 def default_data_path():
@@ -58,8 +59,6 @@ def create_temporary_input_file():
 
 
 def test_create_tmp_file(create_temporary_input_file):
-
-
     """Test the creation of a temporary input file.
     """
     directory = os.path.dirname(create_temporary_input_file)
@@ -70,18 +69,17 @@ def test_create_tmp_file(create_temporary_input_file):
     assert os.path.exists(
         os.path.join(directory, "test_room_edg_acoustics.msh"))
 
-
 def test_edg_acoustics(create_temporary_input_file):
     """
-    Test the edg acoustics simulation method.
+    Test the DG acoustic simulation method.
     """
-
     gmsh.initialize()
-    dg_method(create_temporary_input_file)
+    interface = DGinterface.DGMethod(create_temporary_input_file)
+    interface.run_simulation()
     gmsh.finalize()
 
     with open(create_temporary_input_file, 'r') as f:
-         data = json.load(f)
+        data = json.load(f)
 
     rir = np.array(data['results'][0]['responses'][0]['receiverResults'])
 

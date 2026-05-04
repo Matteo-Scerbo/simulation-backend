@@ -1,13 +1,10 @@
-# region Import Libraries
 import os
 from pathlib import Path
 import numpy
 import gmsh
-import shutil
 
 from acousticDE.FiniteVolumeMethod.CreateMeshFVM import generate_mesh
 
-# Support both package and script execution.
 from .definition import SimulationMethod
 
 import json
@@ -339,21 +336,3 @@ def abs_term(th, c0, abscoeff_list):
             Absx = (c0 * abs_coeff) / (2 * (2 - abs_coeff))  # Modified by Xiang
         Absx_array = np.append(Absx_array, Absx)
     return Absx_array
-
-
-
-if __name__ == "__main__":
-    # JSON path in the uploads folder. This variable is set for the
-    # container when it is started up.
-    json_file_path = os.environ.get("JSON_PATH")
-
-    print(f"Running DG method with JSON_PATH={json_file_path}")
-    gmsh.initialize()
-    dg_method_object = DGMethod(json_file_path)
-    dg_method_object.run_simulation()
-    gmsh.finalize()
-
-    # Save the results to a separate file
-    dg_method_object.save_results()
-
-    print("DG container finished.")

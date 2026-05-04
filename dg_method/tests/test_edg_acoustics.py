@@ -7,7 +7,7 @@ import gmsh
 import json
 import numpy as np
 
-from dg_interface import DGinterface
+from dg_interface import DGMethod
 
 
 def default_data_path():
@@ -74,9 +74,30 @@ def test_edg_acoustics(create_temporary_input_file):
     Test the DG acoustic simulation method.
     """
     gmsh.initialize()
-    interface = DGinterface.DGMethod(create_temporary_input_file)
+    interface = DGMethod(create_temporary_input_file)
     interface.run_simulation()
     gmsh.finalize()
+
+    with open(create_temporary_input_file, 'r') as f:
+        data = json.load(f)
+
+    rir = np.array(data['results'][0]['responses'][0]['receiverResults'])
+
+    assert rir is not None
+    assert len(rir) > 0
+    assert isinstance(rir, np.ndarray)
+    assert np.any(np.abs(rir) >= 1e-6)
+
+
+def test_dg_method_cli(create_temporary_input_file):
+    """Test the DG method CLI.
+    """
+    # Simulate running the CLI by setting the environment variable and
+    # calling the main function
+    os.environ["JSON_PATH"] = create_temporary_input_file
+
+    # Run the main function
+    os.system("python -m dg_interface")
 
     with open(create_temporary_input_file, 'r') as f:
         data = json.load(f)

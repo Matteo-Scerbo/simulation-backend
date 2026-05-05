@@ -10,9 +10,11 @@ def main() -> None:
 
     print(f"Running DG method with JSON_PATH={json_file_path}")
     gmsh.initialize()
-    dg_method_object = DGMethod(json_file_path)
-    dg_method_object.run_simulation()
-    gmsh.finalize()
+    try:
+        dg_method_object = DGMethod(json_file_path)
+        dg_method_object.run_simulation()
+    finally:
+        gmsh.finalize()
 
     # Save the results to a separate file
     dg_method_object.save_results()

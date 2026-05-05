@@ -13,7 +13,7 @@ class SimulationMethod(ABC):
 
     """
 
-    def __init__(self, input_json_path: str | Path | None = None):
+    def __init__(self, input_json_path: str | Path):
         """Initialize the simulation method.
 
         Parameters
@@ -21,11 +21,24 @@ class SimulationMethod(ABC):
         input_json_path : str | Path | None, optional
             The path to the input JSON file, by default None
 
+        Raises
+        ------
+        FileNotFoundError
+            If the input JSON file does not exist.
+
         """
+        if input_json_path is None:
+            raise FileNotFoundError("input_json_path cannot be None")
+
+        input_path = Path(input_json_path)
+        if not input_path.exists():
+            raise FileNotFoundError(
+                f"Input JSON file not found: {input_json_path}")
+
         self._input_json_path = input_json_path
 
     @property
-    def input_json_path(self) -> str | Path | None:
+    def input_json_path(self) -> str | Path:
         """The input JSON file."""
         return self._input_json_path
 
@@ -66,8 +79,8 @@ class SimulationMethod(ABC):
                     return True
 
                 print(
-                    f"Attempt {attempt}: "
-                    "Server returned {response.status_code}")
+                    f"Attempt {attempt}: ",
+                    f"Server returned {response.status_code}")
             except requests.RequestException as exc:
                 print(f"Attempt {attempt}: Request failed - {exc}")
 

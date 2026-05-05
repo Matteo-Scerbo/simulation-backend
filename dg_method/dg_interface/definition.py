@@ -22,7 +22,20 @@ class SimulationMethod(ABC):
         input_json_path : str | Path | None, optional
             The path to the input JSON file, by default None
 
+        Raises
+        ------
+        FileNotFoundError
+            If the input JSON file does not exist.
+
         """
+        if input_json_path is None:
+            raise FileNotFoundError("input_json_path cannot be None")
+        
+        input_path = Path(input_json_path)
+        if not input_path.exists():
+            raise FileNotFoundError(
+                f"Input JSON file not found: {input_json_path}")
+        
         self._input_json_path = input_json_path
 
     @property

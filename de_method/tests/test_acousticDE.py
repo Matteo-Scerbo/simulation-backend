@@ -1,89 +1,49 @@
 import os
-import shutil
-import pytest
-import tempfile
-from pathlib import Path
-from simulation_backend.de_method.DEinterface import de_method
 import json
-import gmsh
 import numpy as np
 
-
-def default_data_path():
-    """Get the path to the default data folder."""
-    return os.path.join(
-        os.path.dirname(os.path.abspath(__file__)))
+from de_interface import DEMethod
 
 
-def load_default_input_data():
-    """Load the example input data."""
-    with open(os.path.join(
-            default_data_path(),
-            "test_input_acousticDE.json"), 'r') as f:
-        data = json.load(f)
 
-    return data
-
-
-@pytest.fixture
-def default_input_data():
-    """Fixture to load the example input data."""
-    return load_default_input_data()
-
-
-@pytest.fixture
-def create_temporary_input_file():
-    """Fixture to create a temporary input JSON file which can be reused to
-    write results to."""
-    input_tmp = load_default_input_data()
-    geo_file = os.path.join(
-        default_data_path(), "test_room_acousticDE.geo")
-    msh_file = os.path.join(
-        default_data_path(), "test_room_acousticDE.msh")
-
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        tmp_path = Path(tmpdirname) / "temp_input.json"
-        shutil.copy(geo_file, Path(tmpdirname))
-        shutil.copy(msh_file, Path(tmpdirname))
-        input_tmp['geo_path'] = os.path.join(
-            tmpdirname, "test_room_acousticDE.geo")
-        input_tmp['msh_path'] = os.path.join(
-            tmpdirname, "test_room_acousticDE.msh")
-        with open(tmp_path, 'w') as f:
-            json.dump(input_tmp, f)
-
-        yield str(tmp_path)
-
-    return str(tmp_path)
-
-
-def test_create_tmp_file(create_temporary_input_file):
-
-
-    """Test the creation of a temporary input file.
-    """
-    directory = os.path.dirname(create_temporary_input_file)
-
-    assert os.path.exists(create_temporary_input_file)
-    assert os.path.exists(
-        os.path.join(directory, "test_room_acousticDE.geo"))
-    assert os.path.exists(
-        os.path.join(directory, "test_room_acousticDE.msh"))
 
 
 def test_acoustic_de(create_temporary_input_file):
     """
-    Test the edg acoustics simulation method.
+    Test the DE acoustic simulation method.
     """
-
-    gmsh.initialize()
-    de_method(create_temporary_input_file)
-    gmsh.finalize()
+    interface = DEMethod(create_temporary_input_file)
+    interface.run_simulation()
 
     with open(create_temporary_input_file, 'r') as f:
          data = json.load(f)
 
-    rir = np.array(data['results'][0]['responses'][0]['receiverResults'][0]["data"])
+    rir = np.array(data['results'][0]['responses'][0]['receiverResults'][0][
+        "data"
+    ])
+
+    assert rir is not None
+    assert len(rir) > 0
+    assert isinstance(rir, np.ndarray)
+    assert np.any(np.abs(rir) >= 1e-6)
+
+
+def test_de_method_cli(create_temporary_input_file):
+    """Test the DE method CLI.
+    """
+    # Simulate running the CLI by setting the environment variable and
+    # calling the main function
+    os.environ["JSON_PATH"] = create_temporary_input_file
+
+    # Run the main function
+    os.system("python -m de_interface")
+
+    with open(create_temporary_input_file, 'r') as f:
+        data = json.load(f)
+
+    rir = np.array(data['results'][0]['responses'][0]['receiverResults'][0][
+        "data"
+    ])
 
     assert rir is not None
     assert len(rir) > 0

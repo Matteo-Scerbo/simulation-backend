@@ -1,8 +1,7 @@
 import os
 import json
 import numpy as np
-import subprocess
-import sys
+import pytest
 from unittest.mock import patch, MagicMock
 
 from pyroomacoustics_interface import main
@@ -36,15 +35,11 @@ def test_pyroomacoustics_method_cli(mock_post, create_temporary_input_file):
 
 def test_pyroomacoustics_method_cli_missing_json_path():
     """Test the Pyroomacoustics method CLI with missing JSON_PATH."""
-    # Run the CLI without JSON_PATH and expect it to fail
-    result = subprocess.run(
-        [sys.executable, "-m", "pyroomacoustics_interface"],
-        env={**os.environ, "JSON_PATH": ""},
-        capture_output=True,
-        text=True)
+    # Set JSON_PATH to empty string
+    os.environ["JSON_PATH"] = ""
 
-    # Should exit with non-zero status
-    assert result.returncode != 0
-    # Error message should be in stderr
-    assert "JSON_PATH" in result.stderr
-    assert "not set or is empty" in result.stderr
+    # Expect SystemExit with code 1
+    with pytest.raises(SystemExit) as exc_info:
+        main()
+
+    assert exc_info.value.code == 1

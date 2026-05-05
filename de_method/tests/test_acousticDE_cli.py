@@ -26,3 +26,6 @@ def test_de_method_cli(create_temporary_input_file):
     assert len(rir) > 0
     assert isinstance(rir, np.ndarray)
     assert np.any(np.abs(rir) >= 1e-6)
+
+    # Verify that requests.post was called (save_results was executed)
+    mock_post.assert_called_once()

@@ -4,6 +4,7 @@ import pytest
 import shutil
 import tempfile
 from pathlib import Path
+from unittest.mock import patch, MagicMock
 
 
 def default_data_path():
@@ -52,3 +53,16 @@ def create_temporary_input_file():
         yield str(tmp_path)
 
     return str(tmp_path)
+
+
+@pytest.fixture
+def mock_requests_post():
+    """Fixture to mock requests.post for CLI tests.
+
+    Returns the mock object so tests can make assertions on it.
+    """
+    with patch("de_interface.definition.requests.post") as mock_post:
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_post.return_value = mock_response
+        yield mock_post

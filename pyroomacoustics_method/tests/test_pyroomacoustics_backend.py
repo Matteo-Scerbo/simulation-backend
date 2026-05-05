@@ -95,9 +95,8 @@ def test_export_rir_to_input(create_temporary_input_file):
 
 def test_run_simulation(create_temporary_input_file):
     """Run the full simulation pipeline."""
-    interface = pra_interface.PyroomacousticsMethod()
-    interface.run_simulation(
-        create_temporary_input_file)
+    interface = pra_interface.PyroomacousticsMethod(create_temporary_input_file)
+    interface.run_simulation()
 
     with open(create_temporary_input_file, 'r') as f:
         data = json.load(f)

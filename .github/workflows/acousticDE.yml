@@ -1,0 +1,38 @@
+name: acousticDE Interface Tests
+
+on:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  uv-test:
+    name: Pytest for the acousticDE runner
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    strategy:
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
+          - "3.14"
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libglu1-mesa libgl1 mesa-utils
+
+      - name: Run test for pyroomacoustics method
+        run: |
+          cd de_method
+          uv run --extra tests pytest tests/

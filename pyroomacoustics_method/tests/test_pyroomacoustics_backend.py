@@ -61,10 +61,10 @@ def test_pyroomacoustics_method_cli(create_temporary_input_file):
     """Test the Pyroomacoustics method CLI."""
     # Simulate running the CLI by setting the environment variable and
     # calling the main function
-    os.environ["JSON_PATH"] = create_temporary_input_file
-
-    # Run the main function
-    os.system("python -m pyroomacoustics_interface")
+    subprocess.run(
+        [sys.executable, "-m", "pyroomacoustics_interface"],
+        check=True,
+        env={**os.environ, "JSON_PATH": create_temporary_input_file})
 
     with open(create_temporary_input_file, 'r') as f:
         data = json.load(f)

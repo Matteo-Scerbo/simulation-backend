@@ -30,12 +30,12 @@ class SimulationMethod(ABC):
         """
         if input_json_path is None:
             raise FileNotFoundError("input_json_path cannot be None")
-        
+
         input_path = Path(input_json_path)
         if not input_path.exists():
             raise FileNotFoundError(
                 f"Input JSON file not found: {input_json_path}")
-        
+
         self._input_json_path = input_json_path
 
     @property
@@ -80,8 +80,8 @@ class SimulationMethod(ABC):
                     return True
 
                 print(
-                    f"Attempt {attempt}: "
-                    "Server returned {response.status_code}")
+                    f"Attempt {attempt}: ",
+                    f"Server returned {response.status_code}")
             except requests.RequestException as exc:
                 print(f"Attempt {attempt}: Request failed - {exc}")
 

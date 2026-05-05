@@ -13,11 +13,12 @@ def test_simulation_method_with_valid_file(create_temporary_input_file):
     assert method.input_json_path == create_temporary_input_file
 
 
+@pytest.mark.parametrize("empty_path", [None, ""])
 @patch.multiple(SimulationMethod, __abstractmethods__=set())
-def test_simulation_method_with_none_path():
+def test_simulation_method_with_none_path(empty_path):
     """Test SimulationMethod initialization with None path."""
-    with pytest.raises(FileNotFoundError, match="input_json_path cannot be None"):
-        SimulationMethod(None)
+    with pytest.raises(FileNotFoundError, match="input_json_path cannot be None or empty"):
+        SimulationMethod(empty_path)
 
 
 @patch.multiple(SimulationMethod, __abstractmethods__=set())

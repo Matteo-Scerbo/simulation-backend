@@ -13,7 +13,7 @@ class SimulationMethod(ABC):
 
     """
 
-    def __init__(self, input_json_path: str | Path):
+    def __init__(self, input_json_path: str | Path | None):
         """Initialize the simulation method.
 
         Parameters
@@ -27,8 +27,9 @@ class SimulationMethod(ABC):
             If the input JSON file does not exist.
 
         """
-        if input_json_path is None:
-            raise FileNotFoundError("input_json_path cannot be None")
+        if input_json_path is None or (
+                isinstance(input_json_path, str) and input_json_path == ""):
+            raise FileNotFoundError("input_json_path cannot be None or empty")
 
         input_path = Path(input_json_path)
         if not input_path.exists():

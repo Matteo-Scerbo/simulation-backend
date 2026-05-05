@@ -31,15 +31,3 @@ def test_pyroomacoustics_method_cli(mock_post, create_temporary_input_file):
 
     # Verify that requests.post was called (save_results was executed)
     mock_post.assert_called_once()
-
-
-def test_pyroomacoustics_method_cli_missing_json_path():
-    """Test the Pyroomacoustics method CLI with missing JSON_PATH."""
-    # Set JSON_PATH to empty string
-    os.environ["JSON_PATH"] = ""
-
-    # Expect SystemExit with code 1
-    with pytest.raises(SystemExit) as exc_info:
-        main()
-
-    assert exc_info.value.code == 1

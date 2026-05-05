@@ -14,7 +14,7 @@ class SimulationMethod(ABC):
 
     """
 
-    def __init__(self, input_json_path: str | Path | None = None):
+    def __init__(self, input_json_path: str | Path | None):
         """Initialize the simulation method.
 
         Parameters
@@ -28,8 +28,9 @@ class SimulationMethod(ABC):
             If the input JSON file does not exist.
 
         """
-        if input_json_path is None:
-            raise FileNotFoundError("input_json_path cannot be None")
+        if input_json_path is None or (
+                isinstance(input_json_path, str) and input_json_path == ""):
+            raise FileNotFoundError("input_json_path cannot be None or empty")
 
         input_path = Path(input_json_path)
         if not input_path.exists():
@@ -39,7 +40,7 @@ class SimulationMethod(ABC):
         self._input_json_path = input_json_path
 
     @property
-    def input_json_path(self) -> str | Path | None:
+    def input_json_path(self) -> str | Path:
         """The input JSON file."""
         return self._input_json_path
 

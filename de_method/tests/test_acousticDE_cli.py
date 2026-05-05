@@ -1,19 +1,24 @@
 import os
 import json
 import numpy as np
-import subprocess
-import sys
+import pytest
+from unittest.mock import patch, MagicMock
+
+from de_interface import main
 
 
-def test_de_method_cli(create_temporary_input_file):
+@patch("de_interface.definition.requests.post")
+def test_de_method_cli(mock_post, create_temporary_input_file):
     """Test the DE method CLI.
     """
-    # Simulate running the CLI by setting the environment variable and
-    # calling the main function
-    subprocess.run(
-        [sys.executable, "-m", "de_interface"],
-        check=True,
-        env={**os.environ, "JSON_PATH": create_temporary_input_file})
+    # Mock the requests.post to return a successful response
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_post.return_value = mock_response
+
+    # Set JSON_PATH environment variable and call main() directly
+    os.environ["JSON_PATH"] = create_temporary_input_file
+    main()
 
     with open(create_temporary_input_file, 'r') as f:
         data = json.load(f)

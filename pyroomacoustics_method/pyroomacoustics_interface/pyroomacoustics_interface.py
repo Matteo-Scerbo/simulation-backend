@@ -6,10 +6,9 @@ import numpy as np
 import warnings
 import os
 from pathlib import Path
-import json
 
 # Support both package and script execution.
-from utils import SimulationMethod
+from .definition import SimulationMethod
 
 
 class PyroomacousticsMethod(SimulationMethod):
@@ -22,9 +21,9 @@ class PyroomacousticsMethod(SimulationMethod):
 
         print("pyroomacoustics_method: starting simulation")
 
-        walls = import_room_geometry(self.json_file_path)
+        walls = import_room_geometry(self.input_json_path)
 
-        simulation_setup = setup_simulation(self.json_file_path, walls)
+        simulation_setup = setup_simulation(self.input_json_path, walls)
 
         # Compute the RIRs
         simulation_setup.compute_rir()
@@ -33,7 +32,7 @@ class PyroomacousticsMethod(SimulationMethod):
         rir = simulation_setup.rir[0][0]
 
         # Export the RIRs to the input data structure
-        export_rir_to_input(self.json_file_path, rir)
+        export_rir_to_input(self.input_json_path, rir)
 
         print("pyroomacoustics_method: simulation done!")
 
@@ -336,18 +335,3 @@ def export_rir_to_input(json_file_path, rir):
 
     with open(json_file_path, 'w') as f:
         json.dump(input_data, f, indent=4)
-
-
-if __name__ == "__main__":
-    # Will not work! JSON file structure expected in the PyRoomAcoustics
-    # interface does not match the JSON created by the backend
-    json_file_path = os.environ.get("JSON_PATH")
-
-    print(f"Running PyRoomAcoustics method with JSON_PATH={json_file_path}")
-
-    pyroomacoustics_method = PyroomacousticsMethod(json_file_path)
-    # Run the method
-    pyroomacoustics_method.run_simulation()
-
-    # Export results to local file structure
-    pyroomacoustics_method.save_results()

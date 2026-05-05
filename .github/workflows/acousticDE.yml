@@ -30,9 +30,9 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libglu1-mesa libgl1 mesa-utils
+          sudo apt-get install -y gmsh libglu1-mesa libgl1 mesa-utils
 
-      - name: Run test for pyroomacoustics method
+      - name: Run test for the acousticDE method
         run: |
           cd de_method
           uv run --extra tests pytest tests/

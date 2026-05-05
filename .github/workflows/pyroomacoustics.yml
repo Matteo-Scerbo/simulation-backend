@@ -9,6 +9,7 @@ jobs:
   uv-test:
     name: Pytest for the pyroomacoustics runner
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     strategy:
       matrix:

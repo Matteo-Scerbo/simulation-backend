@@ -20,4 +20,4 @@ RUN pip install --no-cache-dir /app/pyroomacoustics_method
 WORKDIR /app/pyroomacoustics_method
 
 # Default command to run the containerized DE method
-CMD ["python", "pyroomacoustics_interface.py"]
+CMD ["python", "-m", "pyroomacoustics_interface"]

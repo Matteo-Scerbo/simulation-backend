@@ -16,13 +16,24 @@ import pandas as pd
 
 
 class DGMethod(SimulationMethod):
+    """Interface class to run the DG method.
+
+    The class implements method to run the calculations for the
+    discontinuous Galerkin method. All required configuration
+    parameters are expected to be provided in the input JSON file
+    passed during initialization.
+
+    """
+
     def __init__(
             self,
             input_json_path: str | Path | None = None
         ):
+        """Initialize the DG method interface for the given JSON file."""
         super().__init__(input_json_path)
 
-    def run_simulation(self):
+    def run_simulation(self) -> None:
+        """Run the simulation."""
         dg_method(self.input_json_path)
 
 

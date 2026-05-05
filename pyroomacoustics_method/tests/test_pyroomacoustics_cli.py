@@ -23,3 +23,19 @@ def test_pyroomacoustics_method_cli(create_temporary_input_file):
     assert len(rir) > 0
     assert isinstance(rir, np.ndarray)
     assert np.any(np.abs(rir) >= 1e-6)
+
+
+def test_pyroomacoustics_method_cli_missing_json_path():
+    """Test the Pyroomacoustics method CLI with missing JSON_PATH."""
+    # Run the CLI without JSON_PATH and expect it to fail
+    result = subprocess.run(
+        [sys.executable, "-m", "pyroomacoustics_interface"],
+        env={**os.environ, "JSON_PATH": ""},
+        capture_output=True,
+        text=True)
+
+    # Should exit with non-zero status
+    assert result.returncode != 0
+    # Error message should be in stderr
+    assert "JSON_PATH" in result.stderr
+    assert "not set or is empty" in result.stderr

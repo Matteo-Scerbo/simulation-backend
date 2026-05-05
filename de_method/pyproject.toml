@@ -1,0 +1,73 @@
+[project]
+name = "de_interface"
+version = "0.1.0"
+description = "Python package for DE acoustic simulation."
+requires-python = ">=3.11"
+authors = [
+    { name = "Silvin Willemsen", email = "s.willemsen@tue.nl" },
+    { name = "Ilaria Fichera", email = "f.fichera@tue.nl" },
+    { name = "Marco Berzborn", email = "m.berzborn@tue.nl" }
+]
+keywords = [
+    "finite-volume-method",
+    "acoustic simulation",
+    "geometrical acoustics",
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "pandas>=2.2.0",
+    "numpy>=1.23.0",
+    "matplotlib",
+    "requests",
+    "acousticDE",
+]
+
+[project.optional-dependencies]
+deploy = [
+    "twine",
+    "wheel",
+    "build",
+    "setuptools",
+    "bump-my-version",
+]
+
+tests = [
+    "pytest",
+    "pytest-cov",
+    "watchdog",
+    "ruff",
+    "coverage",
+]
+
+docs = [
+    "sphinx",
+    "autodocsumm>=0.2.14",
+    "pydata-sphinx-theme",
+    "sphinx_mdinclude",
+    "sphinx-design",
+    "sphinx-favicon",
+    "sphinx-reredirects",
+]
+
+dev = ["de_interface[deploy,tests,docs]"]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["de_interface"]
+
+[project.scripts]
+de_interface = "de_interface:main"

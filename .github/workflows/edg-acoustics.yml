@@ -35,3 +35,16 @@ jobs:
         run: |
           cd dg_method
           uv run --extra tests pytest tests/
+
+  build-docker-image:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build Docker Image
+        run: |
+          cd pyroomacoustics_method
+          docker build -t pyroomacoustics-method:latest .

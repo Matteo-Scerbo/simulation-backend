@@ -46,5 +46,5 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          cd pyroomacoustics_method
-          docker build -t pyroomacoustics-method:latest .
+          cd dg_method
+          docker build -t dg-method:latest .

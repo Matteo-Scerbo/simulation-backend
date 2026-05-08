@@ -9,6 +9,12 @@ via the same JSON file used for configuration.
 
 .. toctree::
    :maxdepth: 1
+   :caption: Setup Instructions
+
+   includes/setup.rst
+
+.. toctree::
+   :maxdepth: 1
    :caption: Contribution Guidelines
 
    includes/contributing.rst

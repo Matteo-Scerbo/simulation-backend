@@ -9,3 +9,4 @@ The following steps will help you navigate the process.
    :maxdepth: 1
 
    contributing/setup_dev.rst
+   contributing/contribute_method.rst

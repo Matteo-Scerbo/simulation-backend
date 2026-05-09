@@ -32,7 +32,12 @@ From the ``simulation-backend`` directory, run:
 
 .. code-block:: bash
 
-   copier copy https://github.com/choras-org/template_simulation_method ./
+   copier copy https://github.com/choras-org/template_simulation_method ./ --trust
+
+Note that the ``--trust`` flag is required. No code will be executed except for printing additional instructions.
+
+.. warning::
+   Make sure to run the above command from the ``simulation-backend`` directory or that you point the output path correctly, otherwise the generated files will be created in the wrong location.
 
 Questions for Customization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -38,7 +38,6 @@ docs = [
 
 dev = ["simulation_backend[tests,docs]"]
 
-[tool.setuptools.packages]
-# Turn off automatic package discovery, since we do not specify any packages in this project
-# All code is implemented in the sub-packages
-find = {namespaces = false}
+[tool.setuptools]
+# Explicitly declare that this distribution does not define top-level packages.
+packages = []

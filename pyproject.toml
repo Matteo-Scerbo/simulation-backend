@@ -36,7 +36,7 @@ docs = [
     "sphinx-gallery",
 ]
 
-dev = ["simulation_backend[deploy,tests,docs]"]
+dev = ["simulation_backend[tests,docs]"]
 
 [tool.setuptools.packages]
 # Turn off automatic package discovery, since we do not specify any packages in this project

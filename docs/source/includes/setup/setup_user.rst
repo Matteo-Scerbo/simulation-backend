@@ -60,7 +60,7 @@ Add the path to your local SSH key directory in volumes of backend:
      - /var/run/docker.sock:/var/run/docker.sock
      - ./uploads:/app/uploads
      - ./simulation-backend:/app/simulation-backend
-     - <absolute-path-ssh-directory>.ssh:/root/.ssh:ro # Add this line
+     - <absolute-path-to-ssh-directory>/.ssh:/root/.ssh:ro # Add this line
 
 Cloud Configuration Variables
 ------------------------------
@@ -81,8 +81,8 @@ After SSH is configured and you receive your cloud access details (IP address, u
           """
           Cloud Configuration
           """
-          CLOUD_EXECUTOR_HOST = "145.38.205.131"       # ← Update with your cloud IP
-          CLOUD_EXECUTOR_USER = "smondal"              # ← Update with your username
+          CLOUD_EXECUTOR_HOST = "<cloud-ip>"           # ← Update with your cloud IP
+          CLOUD_EXECUTOR_USER = "<cloud-user>"         # ← Update with your username
           CLOUD_EXECUTOR_KEY_PATH = f"{Path.home()}/.ssh/id_ed25519"
           CLOUD_EXECUTOR_DIRECTORY = f"/data/storage/{CLOUD_EXECUTOR_USER}"
 

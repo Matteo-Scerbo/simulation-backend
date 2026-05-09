@@ -1,5 +1,5 @@
 Integrating a new Method
-======================
+========================
 
 Add Example Settings
 --------------------
@@ -28,7 +28,7 @@ This file would have the following structure:
 Update Method Configuration
 ---------------------------
 
-Update the file ``method-config.json`` in the ``simulation-backend`` directory with a new entry.
+Update the file ``methods-config.json`` in the ``simulation-backend`` directory with a new entry.
 
 This file lists all available simulation methods, so CHORAS can recognize yours.
 
@@ -52,15 +52,15 @@ Open the ``docker-compose.yml`` in the CHORAS root directory and add your method
 .. code-block:: yaml
 
    services:
-   # ... existing services ...
-   mynew-method:                         # ← Your method name (kept as service name)
+     # ... existing services ...
+     mynew-method:                         # ← Your method name (kept as service name)
        platform: linux/amd64              # ← Keep unchanged
        build:
-       context: ./simulation-backend    # ← Keep unchanged
-       dockerfile: new_method/Dockerfile  # ← Path to your Dockerfile
+         context: ./simulation-backend    # ← Keep unchanged
+         dockerfile: new_method/Dockerfile  # ← Path to your Dockerfile
        image: mynew_image:latest          # ← EXACTLY match methods-config.json
        profiles:
-       - sim_method                     # ← Keep unchanged
+         - sim_method                     # ← Keep unchanged
 
 Modify the Build Script
 ~~~~~~~~~~~~~~~~~~~~~~~

@@ -1,5 +1,0 @@
-pyroomacoustics
-gmsh
-numpy
-matplotlib
-requests

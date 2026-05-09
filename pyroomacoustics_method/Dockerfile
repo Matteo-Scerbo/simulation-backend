@@ -11,18 +11,13 @@ RUN apt-get update && apt-get install -y \
     gmsh \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
-COPY pyroomacoustics_method/requirements.txt .
+# Copy method package
+COPY pyroomacoustics_method /app/pyroomacoustics_method
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install the method package
+RUN pip install --no-cache-dir /app/pyroomacoustics_method
 
-# Copy the DE method interface and shared components
-COPY pyroomacoustics_method/pyroomacoustics_interface.py .
-COPY common/MeasurementRoom.geo .
-COPY common/MeasurementRoom.msh .
-COPY common/HelperFunctions.py .
-COPY common/simulation_method_interface.py .
+WORKDIR /app/pyroomacoustics_method
 
 # Default command to run the containerized DE method
-CMD ["python", "pyroomacoustics_interface.py"]
+CMD ["python", "-m", "pyroomacoustics_interface"]

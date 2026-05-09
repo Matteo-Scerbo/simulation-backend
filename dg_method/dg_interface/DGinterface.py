@@ -1,20 +1,40 @@
-# region Import Libraries
 import os
 from pathlib import Path
 import numpy
 import gmsh
-import shutil
 
 from acousticDE.FiniteVolumeMethod.CreateMeshFVM import generate_mesh
-from simulation_method_interface import SimulationMethod
+
+from .definition import SimulationMethod
 
 import json
 import numpy as np
 from math import log, sqrt, factorial, pow
+
 import edg_acoustics
 import pandas as pd
 
-print(edg_acoustics.__file__)
+
+class DGMethod(SimulationMethod):
+    """Interface class to run the DG method.
+
+    The class implements method to run the calculations for the
+    discontinuous Galerkin method. All required configuration
+    parameters are expected to be provided in the input JSON file
+    passed during initialization.
+
+    """
+
+    def __init__(
+            self,
+            input_json_path: str | Path | None = None
+        ):
+        """Initialize the DG method interface for the given JSON file."""
+        super().__init__(input_json_path)
+
+    def run_simulation(self) -> None:
+        """Run the simulation."""
+        dg_method(self.input_json_path)
 
 
 # ugly to keep this public, but needed for deepomethod...
@@ -49,7 +69,7 @@ def dg_method(json_file_path: str | Path, save_results_to_json: bool = True):
             os.makedirs(output_path, exist_ok=True)
             Path(os.path.join(output_path, f"{output_results}.{file_format}")).unlink(missing_ok=True)
             Path(os.path.join(output_path, "results.json")).unlink(missing_ok=True)
-            
+
         freq_upper_limit = simulation_settings["dg_freq_upper_limit"]
 
         mesh_filename = result_container["msh_path"]
@@ -59,15 +79,15 @@ def dg_method(json_file_path: str | Path, save_results_to_json: bool = True):
         rho0 = simulation_settings["dg_rho0"] # density of air in kg/m^3
 
         # total simulation time in seconds
-        impulse_length = simulation_settings["dg_ir_length"]    
+        impulse_length = simulation_settings["dg_ir_length"]
 
         CFL = simulation_settings.get("dg_cfl", 1)
         Nx = simulation_settings.get("dg_poly_order", 4)
         PPW = simulation_settings.get("dg_ppw", 2)
         minWavelength = c0 / freq_upper_limit
 
-        # Eq. (26) in Wang, H., Sihar, I., Pagan Munoz, R., & Hornikx, M. (2019). 
-        # Room acoustics modelling in the time-domain with the nodal discontinuous Galerkin method. 
+        # Eq. (26) in Wang, H., Sihar, I., Pagan Munoz, R., & Hornikx, M. (2019).
+        # Room acoustics modelling in the time-domain with the nodal discontinuous Galerkin method.
         # Journal of the Acoustical Society of America, 145(4), 2650–2663.
         # https://doi.org/10.1121/1.5096154
 
@@ -220,7 +240,7 @@ def dg_method(json_file_path: str | Path, save_results_to_json: bool = True):
 
             df = pd.DataFrame()
             df["t"] = impulse_length * np.arange(0, len(data["results"][0]["responses"][0]["receiverResults"]))/len(data["results"][0]["responses"][0]["receiverResults"])
-            df["pressure"] = data["results"][0]["responses"][0]["receiverResults"] 
+            df["pressure"] = data["results"][0]["responses"][0]["receiverResults"]
 
             with open(
                 json_file_path.replace(".json", "_pressure.csv"), "w", newline=""
@@ -327,34 +347,3 @@ def abs_term(th, c0, abscoeff_list):
             Absx = (c0 * abs_coeff) / (2 * (2 - abs_coeff))  # Modified by Xiang
         Absx_array = np.append(Absx_array, Absx)
     return Absx_array
-
-class DGMethod(SimulationMethod):
-    def __init__(self):
-        super().__init__()
-
-    def run_simulation(self, json_file_path):
-        dg_method(json_file_path)
-        
-
-if __name__ == "__main__":
-    from HelperFunctions import (
-
-            save_results,
-            plot_dg_results
-        )
-
-    # JSON path in the uploads folder. This variable is set for the 
-    # container when it is started up. 
-    json_file_path = os.environ.get("JSON_PATH")
-    
-    print(f"Running DG method with JSON_PATH={json_file_path}")
-    gmsh.initialize()
-    dg_method_object = DGMethod()
-    dg_method_object.run_simulation(json_file_path)
-    gmsh.finalize()
-    # Save the results to a separate file
-    save_results(json_file_path)
-    # Plot the results
-    plot_dg_results(json_file_path)
-    print("DG container finished.")
-

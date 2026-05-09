@@ -11,19 +11,13 @@ RUN apt-get update && apt-get install -y \
     gmsh \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
-COPY de_method/requirements.txt .
+# Copy method package directory
+COPY de_method /app/de_method
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install the method package
+RUN pip install --no-cache-dir /app/de_method
 
-# Copy the DE method interface and shared components
-COPY de_method/DEinterface.py .
-COPY common/MeasurementRoom.geo .
-COPY common/MeasurementRoom.msh .
-COPY common/HelperFunctions.py .
-COPY common/simulation_method_interface.py .
-
+WORKDIR /app/de_method
 
 # Default command to run the containerized DE method
-CMD ["python", "DEinterface.py"]
+CMD ["python", "-m", "de_interface"]

@@ -2,6 +2,7 @@
 """
 import json
 from pathlib import Path
+from pprint import pprint
 
 from .definition import SimulationMethod
 
@@ -28,6 +29,39 @@ class MoDARTMethod(SimulationMethod):
         json_file_path : str | Path | None, optional
             Path to the JSON file. If not provided, uses the path from initialization.
         """
+        # Load the input JSON file
+        with open(self.input_json_path, "r") as json_file:
+            result_container = json.load(json_file)
+        
+        temp_subfolder = Path(result_container['msh_path']).parent / 'MoDART_data'
+        result_container['MoDART_data_subfolder'] = str(temp_subfolder)
+
+        print('\n\tDEBUG MESSAGE: creating temp subfolder:')
+        print('\t', temp_subfolder, '\n')
+        if not Path.is_dir(temp_subfolder):
+            Path.mkdir(temp_subfolder)
+
+        obj_path = str(temp_subfolder / 'mesh.obj')
+        print('\n\tDEBUG MESSAGE: will write to temp file:')
+        print('\t', obj_path, '\n')
+        
+        import gmsh
+        gmsh.initialize()
+        try:
+            print('\n\tDEBUG MESSAGE: converting mesh to Wavefront format; step 1: load .msh\n')
+
+            gmsh.open(result_container['msh_path'])
+
+            print('\n\tDEBUG MESSAGE: converting mesh to Wavefront format; step 2: save .obj\n')
+            
+            gmsh.write(obj_path)
+        finally:
+            gmsh.finalize()
+        
+        # Save the updated JSON (with the added MoDART_data_subfolder field)
+        with open(self.input_json_path, "w") as json_output:
+            json_output.write(json.dumps(result_container, indent=4))
+
         self._modart_method(self.input_json_path)
 
     def _modart_method(self, json_file_path: str | Path) -> None:
@@ -41,7 +75,17 @@ class MoDARTMethod(SimulationMethod):
         with open(json_file_path, "r") as json_file:
             result_container = json.load(json_file)
 
-        print('\tDEBUG MESSAGE: running _modart_method')
+        print('\n\tDEBUG MESSAGE: starting _modart_method\n')
+
+        obj_path = str(Path(result_container['MoDART_data_subfolder']) / 'mesh.obj')
+
+        print('\n\tDEBUG MESSAGE: reading .obj file at path:')
+        print('\t', obj_path, '\n')
+
+        with open(obj_path, "r") as obj_file:
+            for line in obj_file:
+                print(line[:-1])
+        print()
 
         # TODO: Implement your simulation logic here
         # 1. Extract simulation parameters from result_container
@@ -67,6 +111,8 @@ class MoDARTMethod(SimulationMethod):
 
         # Write results back to JSON
         # result_container["results"][0]["responses"][0]["receiverResults"] = results.tolist()
+
+        print('\n\tDEBUG MESSAGE: ending _modart_method\n')
 
         # Save the updated JSON
         with open(json_file_path, "w") as json_output:

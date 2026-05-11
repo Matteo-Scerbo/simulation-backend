@@ -11,12 +11,12 @@ def test_modart_method_cli(mock_requests_post, create_temporary_input_file):
     # Set JSON_PATH environment variable and call main() directly
     os.environ["JSON_PATH"] = create_temporary_input_file
 
-    print('\tDEBUG MESSAGE: running test_modart_method_cli')
-
     main()
 
     with open(create_temporary_input_file, 'r') as f:
         data = json.load(f)
+
+    print('\n\tDEBUG MESSAGE: assessing modart_method results\n')
 
     # TODO: Add assertions specific to your simulation method
     # For example, check that results were written to the JSON file

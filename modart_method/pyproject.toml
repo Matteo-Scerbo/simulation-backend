@@ -41,6 +41,8 @@ dependencies = [
 
     "tqdm>=4.67.1",
 
+    "raves @ git+https://github.com/IoSR-Surrey/MoD-ART.git@eb047d21ddf406859ea51b74e9d47e5dfe21365a",
+
     "requests",
     "gmsh",
 ]

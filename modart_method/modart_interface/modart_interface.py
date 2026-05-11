@@ -41,6 +41,8 @@ class MoDARTMethod(SimulationMethod):
         with open(json_file_path, "r") as json_file:
             result_container = json.load(json_file)
 
+        print('\tDEBUG MESSAGE: running _modart_method')
+
         # TODO: Implement your simulation logic here
         # 1. Extract simulation parameters from result_container
         # 2. Run your simulation

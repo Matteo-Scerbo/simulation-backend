@@ -36,6 +36,14 @@ class MoDARTMethod(SimulationMethod):
         temp_subfolder = Path(result_container['msh_path']).parent / 'MoDART_data'
         result_container['MoDART_data_subfolder'] = str(temp_subfolder)
 
+        print('\n\tDEBUG MESSAGE: reading .msh file at path:')
+        print('\t', result_container['msh_path'], '\n')
+
+        with open(result_container['msh_path'], "r") as msh_file:
+            for line in msh_file:
+                print(line[:-1])
+        print()
+
         print('\n\tDEBUG MESSAGE: creating temp subfolder:')
         print('\t', temp_subfolder, '\n')
         if not Path.is_dir(temp_subfolder):

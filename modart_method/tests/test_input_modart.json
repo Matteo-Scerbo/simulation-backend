@@ -1,6 +1,6 @@
 {
     "geo_path": "test_room_modart.geo",
-    "msh_path": "test_room_modart.msh",
+    "msh_path": "test_room_modart_simple.msh",
     "absorption_coefficients": {
         "floor": "0.05, 0.05, 0.08, 0.1, 0.12, 0.15",
         "wall1": "0.05, 0.05, 0.08, 0.1, 0.12, 0.15",

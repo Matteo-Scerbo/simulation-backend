@@ -5,8 +5,6 @@ import pytest
 
 from modart_interface import main
 
-import matplotlib.pyplot as plt
-
 
 def test_modart_method_cli(mock_requests_post, create_temporary_input_file):
     """Test the MoDART method CLI."""
@@ -26,9 +24,6 @@ def test_modart_method_cli(mock_requests_post, create_temporary_input_file):
     results = data['results'][0]['responses'][0]['receiverResults']
     assert results is not None
     assert len(results) > 0
-
-    # plt.plot(results)
-    # plt.show()
 
     # Verify that requests.post was called (save_results was executed)
     mock_requests_post.assert_called_once()

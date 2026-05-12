@@ -2,7 +2,7 @@
 """
 import json
 from pathlib import Path
-from pprint import pprint
+from collections import defaultdict
 
 from .definition import SimulationMethod
 
@@ -39,11 +39,6 @@ class MoDARTMethod(SimulationMethod):
         print('\n\tDEBUG MESSAGE: reading .msh file at path:')
         print('\t', result_container['msh_path'], '\n')
 
-        with open(result_container['msh_path'], "r") as msh_file:
-            for line in msh_file:
-                print(line[:-1])
-        print()
-
         print('\n\tDEBUG MESSAGE: creating temp subfolder:')
         print('\t', temp_subfolder, '\n')
         if not Path.is_dir(temp_subfolder):
@@ -53,18 +48,37 @@ class MoDARTMethod(SimulationMethod):
         print('\n\tDEBUG MESSAGE: will write to temp file:')
         print('\t', obj_path, '\n')
         
+        print('\n\tDEBUG MESSAGE: loading mesh using meshio')
+        import meshio
+        mesh = meshio.read(result_container['msh_path'])
+
+        print('\n\tDEBUG MESSAGE: contents of "mesh.cells":')
+        for cell in mesh.cells:
+            print(f'\t\ttype: {cell.type}\tshape: {cell.data.shape}')
+
+        print('\n\tDEBUG MESSAGE: contents of "mesh.cell_data":')
+        for k, d in mesh.cell_data.items():
+            for i, d_i in enumerate(d):
+                print(f'\t\tkey: {k}\tidx in key: {i}\tlen: {len(d_i)}')
+                print(f'\t\tcontents: {d_i}')
+        print()
+
+        # mesh.cells = [cell for cell in mesh.cells
+        #               if cell.type in ["triangle", "quad", "polygon"]]
+        
+        # This does not include the materials.
+        # mesh.write(obj_path)
+        
+        """
         import gmsh
         gmsh.initialize()
         try:
-            print('\n\tDEBUG MESSAGE: converting mesh to Wavefront format; step 1: load .msh\n')
-
             gmsh.open(result_container['msh_path'])
-
-            print('\n\tDEBUG MESSAGE: converting mesh to Wavefront format; step 2: save .obj\n')
-            
+            # This does not include the materials.
             gmsh.write(obj_path)
         finally:
             gmsh.finalize()
+        """
         
         # Save the updated JSON (with the added MoDART_data_subfolder field)
         with open(self.input_json_path, "w") as json_output:
@@ -84,16 +98,6 @@ class MoDARTMethod(SimulationMethod):
             result_container = json.load(json_file)
 
         print('\n\tDEBUG MESSAGE: starting _modart_method\n')
-
-        obj_path = str(Path(result_container['MoDART_data_subfolder']) / 'mesh.obj')
-
-        print('\n\tDEBUG MESSAGE: reading .obj file at path:')
-        print('\t', obj_path, '\n')
-
-        with open(obj_path, "r") as obj_file:
-            for line in obj_file:
-                print(line[:-1])
-        print()
 
         # TODO: Implement your simulation logic here
         # 1. Extract simulation parameters from result_container

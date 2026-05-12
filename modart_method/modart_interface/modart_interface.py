@@ -243,6 +243,8 @@ class MoDARTMethod(SimulationMethod):
         environment_folder = result_container['MoDART_data_subfolder']
         # TODO: this will eventually be named differently in the JSON.
         response_duration = result_container['simulationSettings']['de_ir_length']
+        
+        # TODO: Load and use simulation settings.
 
         # TODO: echogram_sample_rate will eventually be a parameter set by the user.
         echogram_sample_rate = int(1e3)

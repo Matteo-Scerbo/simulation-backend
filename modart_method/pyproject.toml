@@ -7,13 +7,9 @@ authors = [
     { name = "Matteo Scerbo", email = "matteo.scerbo@gmail.com" },
 ]
 keywords = [
-
     "acoustic simulation",
-
     "geometrical acoustics",
-
     "acoustic radiance transfer",
-
 ]
 
 classifiers = [
@@ -22,29 +18,16 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Programming Language :: Python :: 3",
-
     "Programming Language :: Python :: 3.11",
-
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-
     "Programming Language :: Python :: 3.14",
-
 ]
+
 dependencies = [
-
-    "numpy>=2.2.5",
-
-    "matplotlib>=3.8.4",
-
-    "scipy>=1.14.1",
-
-    "tqdm>=4.67.1",
-
-    "raves @ git+https://github.com/IoSR-Surrey/MoD-ART.git@eb047d21ddf406859ea51b74e9d47e5dfe21365a",
-
+    "raves>=0.1.1",
+    "meshio>=5.3.5",
     "requests",
-    "gmsh",
 ]
 
 [project.optional-dependencies]

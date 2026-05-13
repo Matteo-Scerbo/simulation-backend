@@ -317,9 +317,6 @@ class MoDARTMethod(SimulationMethod):
             except Exception as exc:
                 raise RuntimeError(f'Failed to generate echograms for simulation #{sim_idx+1}.') from exc
             
-            print(frequencies)
-            pprint(MoDART_data)
-
             # Prepare the audio-rate time intervals at which we'll evaluate the upsampled echogram.
             echogram_time_axis = np.arange(0, response_duration, 1 / echogram_sample_rate)
             audio_time_axis = np.arange(0, response_duration, 1 / audio_sample_rate)

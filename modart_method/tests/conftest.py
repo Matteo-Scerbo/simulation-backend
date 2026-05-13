@@ -37,7 +37,7 @@ def create_temporary_input_file():
     geo_file = os.path.join(
         default_data_path(), "test_room_modart.geo")
     msh_file = os.path.join(
-        default_data_path(), "test_room_modart_simple.msh")
+        default_data_path(), "test_room_modart.msh")
 
     with tempfile.TemporaryDirectory() as tmpdirname:
         tmp_path = Path(tmpdirname) / "temp_input.json"
@@ -46,7 +46,7 @@ def create_temporary_input_file():
         input_tmp['geo_path'] = os.path.join(
             tmpdirname, "test_room_modart.geo")
         input_tmp['msh_path'] = os.path.join(
-            tmpdirname, "test_room_modart_simple.msh")
+            tmpdirname, "test_room_modart.msh")
         with open(tmp_path, 'w') as f:
             json.dump(input_tmp, f)
 

@@ -1,43 +1,39 @@
 {
-    "geo_path": "test_room_modart.geo",
-    "msh_path": "test_room_modart_simple.msh",
     "absorption_coefficients": {
-        "floor": "0.05, 0.05, 0.08, 0.1, 0.12, 0.15",
-        "wall1": "0.05, 0.05, 0.08, 0.1, 0.12, 0.15",
-        "ceiling": "0.4, 0.5, 0.6, 0.7, 0.8, 0.9",
-        "wall2": "0.05, 0.05, 0.08, 0.1, 0.12, 0.15",
-        "wall3": "0.05, 0.05, 0.08, 0.1, 0.12, 0.15",
-        "wall4": "0.05, 0.05, 0.08, 0.1, 0.12, 0.15"
+        "1f791966-f811-4749-b3cf-6a2342a2f5fb": "0.02, 0.03, 0.04, 0.08, 0.15",
+        "300368c5-62b4-ec42-bea3-bce21338c848": "0.02, 0.03, 0.04, 0.08, 0.15",
+        "a89bb798-c0bc-0a40-b63f-4a07eb04fa22": "0.11, 0.22, 0.42, 0.57, 0.63",
+        "b51c2cdd-1035-224e-a373-8d4b9d277b38": "0.02, 0.03, 0.04, 0.08, 0.15",
+        "e9774010-4e39-2847-b243-a52df0a2a06c": "0.02, 0.03, 0.04, 0.08, 0.15",
+        "fc78b514-6596-764c-864a-6cfd3c416947": "0.01, 0.01, 0.01, 0.01, 0.01"
     },
-    "simulationSettings": {
-        "sim_len_type": "edt",
-        "edt": 30,
-        "de_ir_length": 0.5,
-        "de_lc": 0.5
-    },
+    "msh_path": "/app/uploads/MeasurementRoom_tiny_7fe67a12829349da9195f35e4bb5aceb.msh",
+    "geo_path": "/app/uploads/MeasurementRoom_tiny_7fe67a12829349da9195f35e4bb5aceb.geo",
     "results": [
         {
-            "simulationMethodId": 1,
-            "resultType": "IR",
-            "simulationId": 1,
-            "sourceX": 1.0,
-            "sourceY": 2.0,
-            "sourceZ": 1.5,
+            "label": "Source 1",
+            "orderNumber": 1,
+            "percentage": 0,
+            "sourcePointId": "fbc3e3f4-62ba-409b-87c4-8ad6da93713d",
+            "sourceX": 0.3,
+            "sourceY": 0.3,
+            "sourceZ": 0.3,
+            "resultType": "MoDART",
             "frequencies": [
                 125,
                 250,
                 500,
                 1000,
-                2000,
-                4000
+                2000
             ],
-            "percentage": 0,
             "responses": [
                 {
-                    "responseId": 1,
-                    "x": 5.0,
-                    "y": 3.5,
-                    "z": 1.5,
+                    "label": "Receiver 1",
+                    "orderNumber": 1,
+                    "x": 0.6,
+                    "y": 0.6,
+                    "z": 0.3,
+                    "pointId": "66821432-a860-4051-acf7-f3e719e479a3",
                     "parameters": {
                         "edt": [],
                         "t20": [],
@@ -51,5 +47,18 @@
                 }
             ]
         }
-    ]
+    ],
+    "task_id": "6511d180-1431-4d89-bcd5-a81dceab6f3a",
+    "fs_auralization": 44100,
+    "simulationSettings": {
+        "f_e": 5000,
+        "T60": 0.1,
+        "slopes": 10,
+        "humi": 50,
+        "temp": 100,
+        "ppsm": 30,
+        "rays": 1000,
+        "pool": 4
+    },
+    "settingsPreset": "Default"
 }

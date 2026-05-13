@@ -3,9 +3,11 @@
 import json
 import meshio
 import numpy as np
+from pprint import pprint
 from pathlib import Path
 
 from raves import raves, run_MoDART
+from raves.src.utils import visualize_mesh
 
 from numpy.random import default_rng
 from scipy.signal import butter, sosfilt
@@ -19,32 +21,61 @@ def convert_mesh(input_file_path: str | Path | None = None,
     if type(output_folder_path) == str:
         output_folder_path = Path(output_folder_path)
 
+    print('\n\nSTARTING MESH CONVERSION.\n')
+
+    # TODO: Ensure that the mesh is triangulated.
+    
     mesh = meshio.read(input_file_path)
 
     vertices = np.array(mesh.points).squeeze()
     num_vertices = vertices.shape[0]
 
-    # TODO: Take care: if the number of triangles is the same as the number of some other type of element, the material retrieval will fail.
+    triangles = list()
+    triangle_cell_ids = list()
+    triangle_group_ids = list()
+    num_groups = 0
+    for cell_id, cell in enumerate(mesh.cells):
+        if cell.type == 'triangle':
+            group = cell.data
 
-    # TODO: Ensure that the mesh is triangulated.
+            if group.ndim == 1:
+                assert group.shape[0] == 3, 'Bad cell shape.'
+                triangles.append(group)
+                triangle_cell_ids.append(cell_id)
+                triangle_group_ids.append(num_groups)
 
-    triangles = np.array([cell.data for cell in mesh.cells
-                            if cell.type == "triangle"]).squeeze()
+            elif group.ndim == 2:
+                assert group.shape[1] == 3, 'Bad cell shape.'
+                for tri in group:
+                    triangles.append(tri)
+                    triangle_cell_ids.append(cell_id)
+                    triangle_group_ids.append(num_groups)
+            else:
+                raise AssertionError('Bad cell shape.')
+
+            num_groups += 1
+    
+    triangles = np.array(triangles)
     num_triangles = triangles.shape[0]
-
+    triangle_cell_ids = np.array(triangle_cell_ids)
+    triangle_group_ids = np.array(triangle_group_ids)
+    
     # N.B.: the triangle normals are inverted w.r.t. what MoD-ART expects. Flip them.
     triangles = triangles[:, ::-1]
 
     assert np.all(triangles < num_vertices), 'The triangle definitions include vertex indices out of range.'
-
-    material_ids = np.array([l for l in mesh.cell_data['gmsh:physical']
-                                if len(l) == num_triangles]).squeeze()
 
     material_names = dict()
     for k, [mat_idx, n_dims] in mesh.field_data.items():
         if n_dims == 2:
             material_names[mat_idx] = k
 
+    triangle_materials = list()
+    for tri_id in range(num_triangles):
+        # TODO: Consider the possibility of non-uniform materials within group; split group if that's the case.
+        mat_id = mesh.cell_data['gmsh:physical'][triangle_cell_ids[tri_id]][0]
+        triangle_materials.append(material_names[mat_id])
+    
     obj_output_lines = list()
     mtl_output_lines = list()
 
@@ -55,7 +86,7 @@ def convert_mesh(input_file_path: str | Path | None = None,
         line = 'v ' + ' '.join([str(c) for c in rounded_coords]) + '\n'
         obj_output_lines.append(line)
     for i in range(num_triangles):
-        patch_name = f'Patch_{i+1}_Mat_{material_names[material_ids[i]]}'
+        patch_name = f'Patch_{triangle_group_ids[i]+1}_Mat_{triangle_materials[i]}'
 
         obj_output_lines.append(f'usemtl {patch_name}\n')
         obj_output_lines.append('f ' + ' '.join([str(v+1) for v in triangles[i]]) + '\n')
@@ -193,7 +224,7 @@ class MoDARTMethod(SimulationMethod):
         # Load the input JSON file
         with open(self.input_json_path, "r") as json_file:
             result_container = json.load(json_file)
-        
+
         # Create a folder for the "temporary" ART and MoD-ART data.
         temp_subfolder = Path(result_container['msh_path']).parent / 'MoDART_data'
         result_container['MoDART_data_subfolder'] = str(temp_subfolder)
@@ -204,28 +235,18 @@ class MoDARTMethod(SimulationMethod):
         with open(self.input_json_path, "w") as json_output:
             json_output.write(json.dumps(result_container, indent=4))
 
-        # This was used to create a simplified "toy example" mesh for testing.
-        """
-        import gmsh
-        gmsh.initialize()
-        try:
-            gmsh.open('C:/Users/matte/Desktop/CHORAS/simulation-backend/modart_method/tests/test_room_modart.geo')
-            gmsh.option.setNumber('Mesh.MeshSizeFactor', 6.0)
-            gmsh.option.setNumber('Mesh.SaveAll', 0)
-            gmsh.option.setNumber("Mesh.MshFileVersion", 2.2)
-            gmsh.model.mesh.generate(2)
-            gmsh.write('C:/Users/matte/Desktop/CHORAS/simulation-backend/modart_method/tests/test_room_modart_simple.msh')
-        finally:
-            gmsh.finalize()
-        return
-        """
-
         # Convert the .msh file into the format expected by MoD-ART.
-        convert_mesh(result_container['msh_path'], temp_subfolder)
+        try:
+            convert_mesh(result_container['msh_path'], temp_subfolder)
+        except Exception as exc:
+            raise RuntimeError('Failed to reformat the input mesh as required.') from exc
 
         # Save the material information into the .csv file expected by MoD-ART.
-        save_materials_file(self.input_json_path)
-        
+        try:
+            save_materials_file(self.input_json_path)
+        except Exception as exc:
+            raise RuntimeError('Failed to reformat the material properties as required.') from exc
+
         # Run MoD-ART.
         self._modart_method(self.input_json_path)
 
@@ -241,6 +262,9 @@ class MoDARTMethod(SimulationMethod):
             result_container = json.load(json_file)
         
         environment_folder = result_container['MoDART_data_subfolder']
+
+        visualize_mesh(environment_folder)
+
         # TODO: this will eventually be named differently in the JSON.
         response_duration = result_container['simulationSettings']['de_ir_length']
         
@@ -250,10 +274,15 @@ class MoDARTMethod(SimulationMethod):
         echogram_sample_rate = int(1e3)
         # TODO: audio_sample_rate will eventually be a parameter set by...?
         audio_sample_rate = int(44.1e3)
+        
+        raise NotImplementedError('Stopping here.')
 
         # Run the pre-processing (shared by all sources, listeners).
         # TODO: Update progress bar.
-        raves(environment_folder)
+        try:
+            raves(environment_folder)
+        except Exception as exc:
+            raise RuntimeError('Failed to run the pre-processing environment analysis.') from exc
 
         for sim_idx, sim_dict in enumerate(result_container['results']):
             source_position = np.array([sim_dict['sourceX'],
@@ -263,11 +292,14 @@ class MoDARTMethod(SimulationMethod):
                                            for pos in sim_dict['responses']])
 
             # Generate the echograms with MoD-ART.
-            MoDART_echograms, frequencies, _ = run_MoDART(environment_folder,
-                                                          source_position, listener_positions,
-                                                          echogram_duration=response_duration,
-                                                          echogram_sample_rate=echogram_sample_rate)
-            
+            try:
+                MoDART_echograms, frequencies, _ = run_MoDART(environment_folder,
+                                                            source_position, listener_positions,
+                                                            echogram_duration=response_duration,
+                                                            echogram_sample_rate=echogram_sample_rate)
+            except Exception as exc:
+                raise RuntimeError(f'Failed to generate echograms for simulation #{sim_idx+1}.') from exc
+
             # Prepare the audio-rate time intervals at which we'll evaluate the upsampled echogram.
             echogram_time_axis = np.arange(0, response_duration, 1 / echogram_sample_rate)
             audio_time_axis = np.arange(0, response_duration, 1 / audio_sample_rate)
@@ -282,9 +314,12 @@ class MoDARTMethod(SimulationMethod):
             envelopes = np.sqrt(upsampled_echograms)
 
             # Amplitude-modulate band-passed stochastic signals to produce an impulse response.
-            responses = noise_shaping(audio_sample_rate, len(audio_time_axis),
-                                      frequencies, envelopes)
-            
+            try:
+                responses = noise_shaping(audio_sample_rate, len(audio_time_axis),
+                                        frequencies, envelopes)
+            except Exception as exc:
+                raise RuntimeError(f'Failed to generate responses for simulation #{sim_idx+1}.') from exc
+
             # Write results back to JSON.
             for rec_idx in range(len(listener_positions)):
                 # Note that the first index of "responses" is for the single source position.

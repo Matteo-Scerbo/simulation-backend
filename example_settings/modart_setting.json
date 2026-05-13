@@ -2,6 +2,17 @@
     "type": "simulationSettings",
     "options": [
         {
+            "name": "Response duration",
+            "id": "durat",
+            "type": "float",
+            "display": "text",
+            "min": 1e-1,
+            "max": 1e1,
+            "default": 1e0,
+            "step": 1e-1,
+            "endAdornment": "s"
+        },
+        {
             "name": "Echogram sample rate",
             "id": "f_e",
             "type": "float",
@@ -57,7 +68,7 @@
         },
         {
             "name": "Atmospheric pressure",
-            "id": "temp",
+            "id": "pres",
             "type": "float",
             "display": "text",
             "min": 50.0,

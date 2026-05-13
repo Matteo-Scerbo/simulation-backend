@@ -51,11 +51,13 @@
     "task_id": "6511d180-1431-4d89-bcd5-a81dceab6f3a",
     "fs_auralization": 44100,
     "simulationSettings": {
+        "durat": 1,
         "f_e": 5000,
         "T60": 0.1,
-        "slopes": 10,
+        "slopes": 2,
         "humi": 50,
-        "temp": 100,
+        "temp": 20,
+        "pres": 100,
         "ppsm": 30,
         "rays": 1000,
         "pool": 4

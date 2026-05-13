@@ -1,10 +1,13 @@
 """Module implementing a CHORAS interface for MoDART.
 """
+import re
 import json
 import meshio
 import numpy as np
 from pprint import pprint
 from pathlib import Path
+
+import matplotlib.pyplot as plt
 
 from raves import raves, run_MoDART
 from raves.src.utils import visualize_mesh
@@ -16,12 +19,16 @@ from scipy.interpolate import make_interp_spline
 from .definition import SimulationMethod
 
 
+# TODO: This function exists in "raves" but it not exposed. Perhaps it should be.
+def sanitize_ascii(s: str) -> str:
+    return re.sub(r'[\W_]+', '_', s, flags=re.ASCII).strip('_')
+
+
+
 def convert_mesh(input_file_path: str | Path | None = None,
                  output_folder_path: str | Path | None = None):
     if type(output_folder_path) == str:
         output_folder_path = Path(output_folder_path)
-
-    print('\n\nSTARTING MESH CONVERSION.\n')
 
     # TODO: Ensure that the mesh is triangulated.
     
@@ -74,7 +81,7 @@ def convert_mesh(input_file_path: str | Path | None = None,
     for tri_id in range(num_triangles):
         # TODO: Consider the possibility of non-uniform materials within group; split group if that's the case.
         mat_id = mesh.cell_data['gmsh:physical'][triangle_cell_ids[tri_id]][0]
-        triangle_materials.append(material_names[mat_id])
+        triangle_materials.append(sanitize_ascii(material_names[mat_id]))
     
     obj_output_lines = list()
     mtl_output_lines = list()
@@ -82,9 +89,9 @@ def convert_mesh(input_file_path: str | Path | None = None,
     obj_output_lines.append('mtllib mesh.mtl\n')
 
     for v in vertices:
-        rounded_coords = [np.round(c, 3) for c in v]
-        line = 'v ' + ' '.join([str(c) for c in rounded_coords]) + '\n'
+        line = 'v ' + ' '.join([str(c) for c in v]) + '\n'
         obj_output_lines.append(line)
+    
     for i in range(num_triangles):
         patch_name = f'Patch_{triangle_group_ids[i]+1}_Mat_{triangle_materials[i]}'
 
@@ -128,7 +135,7 @@ def save_materials_file(json_file_path: str | Path):
             raise RuntimeError('The frequencies should be known before the coefficients are read.')
         else:
             assert len(freq_bands) == len(coeffs)
-            absorptions[material] = coeffs
+            absorptions[sanitize_ascii(material)] = coeffs
     
     with open(str(Path(result_container['MoDART_data_subfolder']) / 'materials.csv'), mode='w') as file:
         line = 'Frequencies, ' + ', '.join([str(f) for f in freq_bands]) + '\n'
@@ -263,24 +270,31 @@ class MoDARTMethod(SimulationMethod):
         
         environment_folder = result_container['MoDART_data_subfolder']
 
-        visualize_mesh(environment_folder)
+        # visualize_mesh(environment_folder)
 
-        # TODO: this will eventually be named differently in the JSON.
-        response_duration = result_container['simulationSettings']['de_ir_length']
+        audio_sample_rate = result_container['fs_auralization']
+        response_duration = result_container['simulationSettings']['durat']
+        echogram_sample_rate = result_container['simulationSettings']['f_e']
+        multiprocess_pool_size = result_container['simulationSettings']['pool']
+        humidity = result_container['simulationSettings']['humi']
+        temperature = result_container['simulationSettings']['temp']
+        pressure = result_container['simulationSettings']['pres']
+        points_per_square_meter = result_container['simulationSettings']['ppsm']
+        rays_per_hemisphere = result_container['simulationSettings']['rays']
+        T60_threshold = result_container['simulationSettings']['T60']
+        max_slopes_per_band = result_container['simulationSettings']['slopes']
         
-        # TODO: Load and use simulation settings.
-
-        # TODO: echogram_sample_rate will eventually be a parameter set by the user.
-        echogram_sample_rate = int(1e3)
-        # TODO: audio_sample_rate will eventually be a parameter set by...?
-        audio_sample_rate = int(44.1e3)
-        
-        raise NotImplementedError('Stopping here.')
-
         # Run the pre-processing (shared by all sources, listeners).
         # TODO: Update progress bar.
         try:
-            raves(environment_folder)
+            raves(environment_folder,
+                  echogram_sample_rate=echogram_sample_rate,
+                  multiprocess_pool_size=multiprocess_pool_size,
+                  humidity=humidity, temperature=temperature, pressure=pressure,
+                  points_per_square_meter=points_per_square_meter,
+                  rays_per_hemisphere=rays_per_hemisphere,
+                  T60_threshold=T60_threshold, max_slopes_per_band=max_slopes_per_band,
+                  skip_T60_plots=True)
         except Exception as exc:
             raise RuntimeError('Failed to run the pre-processing environment analysis.') from exc
 
@@ -293,12 +307,18 @@ class MoDARTMethod(SimulationMethod):
 
             # Generate the echograms with MoD-ART.
             try:
-                MoDART_echograms, frequencies, _ = run_MoDART(environment_folder,
-                                                            source_position, listener_positions,
-                                                            echogram_duration=response_duration,
-                                                            echogram_sample_rate=echogram_sample_rate)
+                MoDART_tuple = run_MoDART(environment_folder,
+                                          source_position, listener_positions,
+                                          echogram_duration=response_duration,
+                                          echogram_sample_rate=echogram_sample_rate,
+                                          humidity=humidity, temperature=temperature, pressure=pressure,
+                                          num_rays=rays_per_hemisphere)
+                MoDART_echograms, frequencies, MoDART_data = MoDART_tuple
             except Exception as exc:
                 raise RuntimeError(f'Failed to generate echograms for simulation #{sim_idx+1}.') from exc
+            
+            print(frequencies)
+            pprint(MoDART_data)
 
             # Prepare the audio-rate time intervals at which we'll evaluate the upsampled echogram.
             echogram_time_axis = np.arange(0, response_duration, 1 / echogram_sample_rate)
@@ -316,7 +336,7 @@ class MoDARTMethod(SimulationMethod):
             # Amplitude-modulate band-passed stochastic signals to produce an impulse response.
             try:
                 responses = noise_shaping(audio_sample_rate, len(audio_time_axis),
-                                        frequencies, envelopes)
+                                          frequencies, envelopes)
             except Exception as exc:
                 raise RuntimeError(f'Failed to generate responses for simulation #{sim_idx+1}.') from exc
 

@@ -26,7 +26,7 @@ classifiers = [
 
 dependencies = [
     "raves>=0.1.2",
-    "meshio>=5.3.5",
+    "gmsh==4.13.1",
     "requests",
 ]
 

@@ -9,7 +9,6 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     gmsh \
     && rm -rf /var/lib/apt/lists/*
-# Note: I tried removing "gmsh \" from the command above, but the build took ages. Why?
 
 # Copy method package directory
 COPY modart_method /app/modart_method

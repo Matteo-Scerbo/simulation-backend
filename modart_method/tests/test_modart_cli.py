@@ -16,10 +16,6 @@ def test_modart_method_cli(mock_requests_post, create_temporary_input_file):
     with open(create_temporary_input_file, 'r') as f:
         data = json.load(f)
 
-    print('\n\tDEBUG MESSAGE: assessing modart_method results\n')
-
-    # TODO: Add assertions specific to your simulation method
-    # For example, check that results were written to the JSON file
     assert "receiverResults" in data['results'][0]['responses'][0]
     results = data['results'][0]['responses'][0]['receiverResults']
     assert results is not None

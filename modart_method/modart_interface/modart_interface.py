@@ -315,6 +315,9 @@ class MoDARTMethod(SimulationMethod):
     All required configuration parameters are expected to be provided
      in the input JSON file passed during initialization.
     """
+    # TODO: Update progress bar.
+    # TODO: Add more tests? More example settings?
+    # TODO: Fill out metrics like T30? It will be done by the backend eventually.
 
     def __init__(self, input_json_path: str | Path):
         """Initialize the MoD-ART interface for the given JSON file.
@@ -383,7 +386,6 @@ class MoDARTMethod(SimulationMethod):
         max_slopes_per_band = result_container['simulationSettings']['slopes']
         
         # Run the pre-processing (shared by all sources, listeners).
-        # TODO: Update progress bar.
         try:
             raves(environment_folder,
                   echogram_sample_rate=echogram_sample_rate,

@@ -5,7 +5,7 @@ import gmsh
 import numpy as np
 from pathlib import Path
 
-from raves import raves, run_MoDART
+from raves import compute_ART, compute_MoDART, run_MoDART
 from raves.src.utils import sanitize_ascii
 
 from numpy.random import default_rng
@@ -15,8 +15,8 @@ from scipy.interpolate import make_interp_spline
 from .definition import SimulationMethod
 
 
-def convert_mesh(geo_file_path: str | Path,
-                 output_folder_path: str | Path) -> None:
+def save_converted_mesh(geo_file_path: str | Path,
+                        output_folder_path: str | Path) -> None:
     """
     Read a .geo file (using gmsh), triangulate its surfaces, and save the result
      in Wavefront format (.obj + .mtl) as expected by MoD-ART.
@@ -28,9 +28,9 @@ def convert_mesh(geo_file_path: str | Path,
     output_folder_path : str or Path
         Path to the folder where converted mesh files will be saved.
     """
-    if not Path.is_file(geo_file_path):
+    if not Path(geo_file_path).is_file():
         raise FileNotFoundError('The specified .geo file could not be found.')
-    if not Path.is_dir(output_folder_path):
+    if not Path(output_folder_path).is_dir():
         raise NotADirectoryError('The specified output folder could not be found.')
 
     # Run the gmsh session in a "protected" scope to make sure it gets finalized no matter what.
@@ -73,7 +73,7 @@ def convert_mesh(geo_file_path: str | Path,
         for material_name, entity_tags_list in surface_entities.items():
             # For each surface material, we found a list of "entities" which may be
             #  different polygons made of that material.
-            # TODO: Check if this understanding is correct.
+            # TODO: Confirm if it actually works like that.
             for tag in entity_tags_list:
                 # Find the triangles which form the surface entity.
                 face_nodes = gmsh.model.mesh.getElementFaceNodes(gmsh_triangle_type, 3, tag=tag)
@@ -85,7 +85,7 @@ def convert_mesh(geo_file_path: str | Path,
                 faces = np.reshape(face_nodes, (num_triangles_in_element, 3))
 
                 # For the purpose of MoD-ART, each "entity" is used as a surface patch.
-                # TODO: Allow automatic segmentation with maximum area threshold.
+                # TODO: Allow automatic segmentation with maximum area threshold (will use code from our upcoming paper).
                 num_patches += 1
                 for face in faces:
                     triangles.append(face)
@@ -163,7 +163,7 @@ def save_materials_file(json_file_path: str | Path) -> None:
     json_file_path : str or Path
         Path to the JSON file to be read.
     """
-    if not Path.is_file(json_file_path):
+    if not Path(json_file_path).is_file():
         raise FileNotFoundError('The specified JSON file could not be found.')
 
     # Load the input JSON file.
@@ -174,14 +174,14 @@ def save_materials_file(json_file_path: str | Path) -> None:
     if 'MoDART_data_subfolder' not in result_container:
         raise ValueError('The MoD-ART data folder is not specified in the JSON.')
     output_folder_path = Path(result_container['MoDART_data_subfolder'])
-    if not Path.is_dir(output_folder_path):
+    if not Path(output_folder_path).is_dir():
         raise NotADirectoryError('The MoD-ART data folder could not be found.')
     
-    # TODO: For now we assume that the length of each
+    # TODO: For now, we assume that the length of each
     #           result_container['absorption_coefficients'].values()
     #       is the same as the length of each
     #           result_container['results'][res_idx]['frequencies']
-    #       Eventually this will change.
+    #       Eventually this will change. This portion of the code will need to be updated.
     freq_bands = None
     for res in result_container['results']:
         freqs = np.array(res['frequencies'], dtype=float)
@@ -316,7 +316,7 @@ class MoDARTMethod(SimulationMethod):
      in the input JSON file passed during initialization.
     """
     # TODO: Update progress bar.
-    # TODO: Add more tests? More example settings?
+    # TODO: Add more tests? More example settings and/or environments?
     # TODO: Fill out metrics like T30? It will be done by the backend eventually.
 
     def __init__(self, input_json_path: str | Path):
@@ -339,7 +339,7 @@ class MoDARTMethod(SimulationMethod):
         # Create a folder for the "temporary" ART and MoD-ART data.
         temp_subfolder = Path(result_container['geo_path']).parent / 'MoDART_data'
         result_container['MoDART_data_subfolder'] = str(temp_subfolder)
-        if not Path.is_dir(temp_subfolder):
+        if not temp_subfolder.is_dir():
             Path.mkdir(temp_subfolder)
         
         # Save the updated JSON (with the added MoDART_data_subfolder field).
@@ -348,7 +348,7 @@ class MoDARTMethod(SimulationMethod):
 
         # Convert the .geo file into the format expected by MoD-ART.
         try:
-            convert_mesh(result_container['geo_path'], temp_subfolder)
+            save_converted_mesh(result_container['geo_path'], temp_subfolder)
         except Exception as exc:
             raise RuntimeError('Failed to reformat the input mesh as required.') from exc
 
@@ -384,23 +384,47 @@ class MoDARTMethod(SimulationMethod):
         rays_per_hemisphere = result_container['simulationSettings']['rays']
         T60_threshold = result_container['simulationSettings']['T60']
         max_slopes_per_band = result_container['simulationSettings']['slopes']
-        
-        # Run the pre-processing (shared by all sources, listeners).
-        try:
-            raves(environment_folder,
-                  echogram_sample_rate=echogram_sample_rate,
-                  multiprocess_pool_size=multiprocess_pool_size,
-                  humidity=humidity, temperature=temperature, pressure=pressure,
-                  points_per_square_meter=points_per_square_meter,
-                  rays_per_hemisphere=rays_per_hemisphere,
-                  T60_threshold=T60_threshold, max_slopes_per_band=max_slopes_per_band,
-                  skip_T60_plots=True)
-        except Exception as exc:
-            raise RuntimeError('Failed to run the pre-processing environment analysis.') from exc
 
         # Each element of "results" is assumed to be a simulation request for a different source
         #  in the same environment, analyzed once.
         # TODO: Check that all relevant settings are identical across different "results" entries.
+        num_sims = len(result_container['results'])
+        
+        # Run the pre-processing (shared by all sources, listeners).
+        # Step 1: Prepare the ART model.
+        try:
+            compute_ART(folder_path=environment_folder,
+                        multiprocess_pool_size=multiprocess_pool_size,
+                        humidity=humidity, temperature=temperature, pressure=pressure,
+                        points_per_square_meter=points_per_square_meter,
+                        rays_per_hemisphere=rays_per_hemisphere)
+        except Exception as exc:
+            raise RuntimeError('Failed to create the ART model (environment pre-processing).') from exc
+        
+        # Claim that the ART model constitutes 40% of the overall progress (very arbitrary).
+        for sim_idx in range(num_sims):
+            result_container['results'][sim_idx]['percentage'] = 40
+        # Save the updated JSON.
+        with open(self.input_json_path, "w") as json_output:
+            json_output.write(json.dumps(result_container, indent=4))
+
+        # Step 2: Analyze the ART model.
+        try:
+            compute_MoDART(folder_path=environment_folder,
+                            echogram_sample_rate=echogram_sample_rate,
+                            T60_threshold=T60_threshold,
+                            max_slopes_per_band=max_slopes_per_band,
+                            skip_T60_plots=True)
+        except Exception as exc:
+            raise RuntimeError('Failed to run the modal analysis (environment pre-processing).') from exc
+
+        # Claim that the MoD-ART analysis constitutes another 40% of the overall progress (very arbitrary).
+        for sim_idx in range(num_sims):
+            result_container['results'][sim_idx]['percentage'] = 80
+        # Save the updated JSON.
+        with open(self.input_json_path, "w") as json_output:
+            json_output.write(json.dumps(result_container, indent=4))
+
         for sim_idx, sim_dict in enumerate(result_container['results']):
             source_position = np.array([sim_dict['sourceX'],
                                         sim_dict['sourceY'],
@@ -420,6 +444,12 @@ class MoDARTMethod(SimulationMethod):
             except Exception as exc:
                 raise RuntimeError(f'Failed to generate echograms for simulation #{sim_idx+1}.') from exc
             
+            # Claim that the response generation constitutes the last 5% of the overall progress (very arbitrary).
+            result_container['results'][sim_idx]['percentage'] = 95
+            # Save the updated JSON.
+            with open(self.input_json_path, "w") as json_output:
+                json_output.write(json.dumps(result_container, indent=4))
+
             # Prepare the audio-rate time intervals at which we'll evaluate the upsampled echogram.
             echogram_time_axis = np.arange(0, response_duration, 1 / echogram_sample_rate)
             audio_time_axis = np.arange(0, response_duration, 1 / audio_sample_rate)
@@ -445,8 +475,9 @@ class MoDARTMethod(SimulationMethod):
                 # Note that the first index of "responses" is for the single source position.
                 result_container['results'][sim_idx]['responses'][rec_idx]['receiverResults'] = responses[0, rec_idx].tolist()
 
-        # Save the updated JSON.
-        with open(self.input_json_path, "w") as json_output:
-            json_output.write(json.dumps(result_container, indent=4))
+            result_container['results'][sim_idx]['percentage'] = 100
+            # Save the updated JSON.
+            with open(self.input_json_path, "w") as json_output:
+                json_output.write(json.dumps(result_container, indent=4))
 
         print("MoDART simulation completed successfully!")

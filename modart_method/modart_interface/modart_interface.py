@@ -315,7 +315,6 @@ class MoDARTMethod(SimulationMethod):
     All required configuration parameters are expected to be provided
      in the input JSON file passed during initialization.
     """
-    # TODO: Update progress bar.
     # TODO: Add more tests? More example settings and/or environments?
     # TODO: Fill out metrics like T30? It will be done by the backend eventually.
 

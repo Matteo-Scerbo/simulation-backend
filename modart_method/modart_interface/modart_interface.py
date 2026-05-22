@@ -471,6 +471,10 @@ class MoDARTMethod(SimulationMethod):
         with open(self.input_json_path, "w") as json_output:
             json_output.write(json.dumps(result_container, indent=4))
 
+        # Some MoD-ART parameters will be saved in the JSON.
+        # For now, this is just for debugging/testing.
+        result_container['MoDART_data'] = None
+
         for sim_idx, sim_dict in enumerate(result_container['results']):
             source_position = np.array([sim_dict['sourceX'],
                                         sim_dict['sourceY'],
@@ -489,6 +493,13 @@ class MoDARTMethod(SimulationMethod):
                 MoDART_echograms, frequencies, MoDART_data = MoDART_tuple
             except Exception as exc:
                 raise RuntimeError(f'Failed to generate echograms for simulation #{sim_idx+1}.') from exc
+
+            if result_container['MoDART_data'] is None:
+                result_container['MoDART_data'] = {
+                    'T60': MoDART_data['T60'].tolist(),
+                    'Band idx': MoDART_data['Band idx'].tolist(),
+                    'Eigenvector shape': MoDART_data['V_hat'].shape
+                }
 
             # Noise-shaping code, in case an impulse response was to be returned.
             """

@@ -35,12 +35,9 @@ Plane Surface(5) = { 5 };
 Plane Surface(6) = { 6 };
 
 Surface Loop(1) = { 1, 2, 3, 4, 5, 6 };
-Physical Surface("a89bb798-c0bc-0a40-b63f-4a07eb04fa22") = { 1 };
-Physical Surface("e9774010-4e39-2847-b243-a52df0a2a06c") = { 2 };
-Physical Surface("fc78b514-6596-764c-864a-6cfd3c416947") = { 3 };
-Physical Surface("300368c5-62b4-ec42-bea3-bce21338c848") = { 4 };
-Physical Surface("b51c2cdd-1035-224e-a373-8d4b9d277b38") = { 5 };
-Physical Surface("1f791966-f811-4749-b3cf-6a2342a2f5fb") = { 6 };
+Physical Surface("floor") = { 1 };
+Physical Surface("ceiling") = { 3 };
+Physical Surface("walls") = { 2, 4, 5, 6 };
 Volume(1) = { 1 };
 Physical Volume("RoomVolume") = { 1 };
 Physical Line("default") = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };

@@ -102,6 +102,7 @@ def save_converted_mesh(geo_file_path: str | Path,
     triangle_patch_ids = np.array(triangle_patch_ids)
 
     # The surface normals are inverted w.r.t. what MoD-ART expects. Flip them (by inverting the triangle winding).
+    # TODO: How can this be tested, to prevent breaking changes in the future? MoD-ART does not raise any errors if the normals are flipped.
     triangles = triangles[:, ::-1]
 
     # Make sure all vertex indices are valid.
@@ -358,8 +359,9 @@ class MoDARTMethod(SimulationMethod):
      in the input JSON file passed during initialization.
     """
     # TODO: Add more tests.
-    #       Failure tests; make sure the correct exception is raised.
     #       More example settings and/or environments?
+    #       Failure tests; make sure the correct exception is raised
+    #        (e.g., "with pytest.raises(FileNotFoundError, match='part of error message'):")
     # TODO: Fill out metrics like T30? It will be done by the backend eventually.
 
     def __init__(self, input_json_path: str | Path):
@@ -380,7 +382,8 @@ class MoDARTMethod(SimulationMethod):
             result_container = json.load(json_file)
 
         # Create a folder for the "temporary" ART and MoD-ART data.
-        temp_subfolder = Path(result_container['geo_path']).parent / 'MoDART_data'
+        geo_path = Path(result_container['geo_path'])
+        temp_subfolder = geo_path.parent / (str(geo_path.stem) + '_MoDART_data')
         result_container['MoDART_data_subfolder'] = str(temp_subfolder)
         if not temp_subfolder.is_dir():
             Path.mkdir(temp_subfolder)
@@ -486,7 +489,7 @@ class MoDARTMethod(SimulationMethod):
                 MoDART_echograms, frequencies, MoDART_data = MoDART_tuple
             except Exception as exc:
                 raise RuntimeError(f'Failed to generate echograms for simulation #{sim_idx+1}.') from exc
-            
+
             # Noise-shaping code, in case an impulse response was to be returned.
             """
             # Claim that the response generation constitutes the last 5% of the overall progress (very arbitrary).

@@ -12,7 +12,6 @@ def test_default_input_data_structure(default_input_data):
     assert "responses" in default_input_data["results"][0]
     assert len(default_input_data["results"][0]["responses"]) > 0
     assert "geo_path" in default_input_data
-    assert "msh_path" in default_input_data
     assert "absorption_coefficients" in default_input_data
 
 

@@ -227,7 +227,7 @@ def noise_shaping(fs: int | float,
     Parameters
     ----------
     fs : int
-        Audio sample rate of the envelopes AND the final response.
+        Audio sample rate of the envelopes AND the final response, in Hertz.
     band_centers : np.ndarray
         One-dimensional array containing the center frequency of each band, in Hertz.
     envelopes : np.ndarray
@@ -307,6 +307,48 @@ def noise_shaping(fs: int | float,
     return np.sum(modulated_noise_signals, axis=2)
 
 
+def schroeder_curves(fs: int | float,
+                     band_centers: np.ndarray,
+                     echograms: np.ndarray) -> np.ndarray:
+    """
+    Convert a set of echograms into backward-integrated energy curves, with bandwitdh correction.
+
+    Parameters
+    ----------
+    fs : int
+        Audio sample rate used for the bandwidth correction, in Hertz.
+    band_centers : np.ndarray
+        One-dimensional array containing the center frequency of each band, in Hertz.
+    echograms : np.ndarray
+        Four-dimensional array containing the energy envelopes.
+        It has shape (S, R, B, T), where:
+        - S is the number of sound sources
+        - R is the number of receivers
+        - B is the number of frequency bands (must match length of "band_centers")
+        - T is the duration in samples.
+    
+    Returns
+    -------
+    response : np.ndarray
+        Array of the same shape as "echograms", containing the energy decay curves.
+    """
+    assert band_centers.ndim == 1
+    assert echograms.ndim == 4
+    assert echograms.shape[2] == band_centers.shape[0]
+
+    # Factor for octave-band boundaries.
+    # TODO: These may become third-octave bands at some point.
+    band_bound = np.sqrt(2)
+    lower_thres = band_centers / band_bound
+    upper_thres = band_centers * band_bound
+    band_widths = upper_thres - lower_thres
+
+    nyquist = fs / 2
+    echograms *= band_widths[None, None, :, None] / nyquist
+
+    return np.cumsum(echograms[:, :, :, ::-1], axis=-1)[:, :, :, ::-1]
+
+
 class MoDARTMethod(SimulationMethod):
     """Interface class to run the MoDART method.
 
@@ -315,7 +357,9 @@ class MoDARTMethod(SimulationMethod):
     All required configuration parameters are expected to be provided
      in the input JSON file passed during initialization.
     """
-    # TODO: Add more tests? More example settings and/or environments?
+    # TODO: Add more tests.
+    #       Failure tests; make sure the correct exception is raised.
+    #       More example settings and/or environments?
     # TODO: Fill out metrics like T30? It will be done by the backend eventually.
 
     def __init__(self, input_json_path: str | Path):
@@ -443,12 +487,14 @@ class MoDARTMethod(SimulationMethod):
             except Exception as exc:
                 raise RuntimeError(f'Failed to generate echograms for simulation #{sim_idx+1}.') from exc
             
+            # Noise-shaping code, in case an impulse response was to be returned.
+            """
             # Claim that the response generation constitutes the last 5% of the overall progress (very arbitrary).
             result_container['results'][sim_idx]['percentage'] = 95
             # Save the updated JSON.
             with open(self.input_json_path, "w") as json_output:
                 json_output.write(json.dumps(result_container, indent=4))
-
+            
             # Prepare the audio-rate time intervals at which we'll evaluate the upsampled echogram.
             echogram_time_axis = np.arange(0, response_duration, 1 / echogram_sample_rate)
             audio_time_axis = np.arange(0, response_duration, 1 / audio_sample_rate)
@@ -473,6 +519,24 @@ class MoDARTMethod(SimulationMethod):
             for rec_idx in range(len(listener_positions)):
                 # Note that the first index of "responses" is for the single source position.
                 result_container['results'][sim_idx]['responses'][rec_idx]['receiverResults'] = responses[0, rec_idx].tolist()
+            """
+
+            EDCs = schroeder_curves(audio_sample_rate, frequencies, MoDART_echograms)
+            EDCs = np.clip(EDCs, 1e-20, None)
+            EDCs = 10 * np.log10(EDCs)
+            
+            time_axis = np.arange(0, response_duration, 1 / echogram_sample_rate)
+
+            for rec_idx in range(len(listener_positions)):
+                for freq_idx, freq in enumerate(frequencies):
+                    result_container['results'][sim_idx]['responses'][rec_idx]['receiverResults'].append(
+                        {
+                            "data": EDCs[0, rec_idx, freq_idx].tolist(),
+                            "t": time_axis.tolist(),
+                            "frequency": freq,
+                            "type": "edc",
+                        }
+                    )
 
             result_container['results'][sim_idx]['percentage'] = 100
             # Save the updated JSON.

@@ -7,8 +7,7 @@
         "e9774010-4e39-2847-b243-a52df0a2a06c": "0.02, 0.03, 0.04, 0.08, 0.15",
         "fc78b514-6596-764c-864a-6cfd3c416947": "0.01, 0.01, 0.01, 0.01, 0.01"
     },
-    "msh_path": "/app/uploads/MeasurementRoom_tiny_7fe67a12829349da9195f35e4bb5aceb.msh",
-    "geo_path": "/app/uploads/MeasurementRoom_tiny_7fe67a12829349da9195f35e4bb5aceb.geo",
+    "geo_path": "tests/test_room_modart.geo",
     "results": [
         {
             "label": "Source 1",

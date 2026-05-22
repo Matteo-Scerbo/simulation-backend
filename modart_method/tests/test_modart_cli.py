@@ -2,6 +2,7 @@
 import os
 import json
 import pytest
+import numpy as np
 
 from modart_interface import main
 
@@ -16,10 +17,20 @@ def test_modart_method_cli(mock_requests_post, create_temporary_input_file):
     with open(create_temporary_input_file, 'r') as f:
         data = json.load(f)
 
-    assert "receiverResults" in data['results'][0]['responses'][0]
+    assert 'receiverResults' in data['results'][0]['responses'][0]
     results = data['results'][0]['responses'][0]['receiverResults']
     assert results is not None
     assert len(results) > 0
+    for r in results:
+        assert len(r) == 4
+        assert 'data' in r
+        assert 't' in r
+        assert 'frequency' in r
+        assert 'type' in r
+        assert r['type'] == 'edc'
+        assert len(r['data']) == len(r['t'])
+
+        assert np.all(np.isfinite(r['data']))
 
     # Verify that requests.post was called (save_results was executed)
     mock_requests_post.assert_called_once()

@@ -2,6 +2,27 @@
     "type": "simulationSettings",
     "options": [
         {
+            "name": "Speed of sound",
+            "id": "speed_of_sound",
+            "type": "float",
+            "display": "text",
+            "min": 300,
+            "max": 400,
+            "default": 343,
+            "step": 1,
+            "endAdornment": "m/s"
+        },
+        {
+            "name": "Global scattering coefficient",
+            "id": "global_scattering_coefficient",
+            "type": "float",
+            "display": "text",
+            "min": 0,
+            "max": 1,
+            "default": 0.1,
+            "step": 0.1
+        },
+        {
             "name": "Image sources: Order",
             "id": "image_source_order",
             "type": "integer",

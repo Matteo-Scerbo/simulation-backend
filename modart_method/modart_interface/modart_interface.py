@@ -358,10 +358,8 @@ class MoDARTMethod(SimulationMethod):
     All required configuration parameters are expected to be provided
      in the input JSON file passed during initialization.
     """
-    # TODO: Add more tests.
-    #       More example settings and/or environments?
-    #       Failure tests; make sure the correct exception is raised
-    #        (e.g., "with pytest.raises(FileNotFoundError, match='part of error message'):")
+    # TODO: Add more "failure" tests: make sure the correct exception is raised, e.g.,
+    #           "with pytest.raises(FileNotFoundError, match='part of error message'):"
     # TODO: Fill out metrics like T30? It will be done by the backend eventually.
 
     def __init__(self, input_json_path: str | Path):
@@ -431,8 +429,6 @@ class MoDARTMethod(SimulationMethod):
         T60_threshold = result_container['simulationSettings']['T60']
         max_slopes_per_band = result_container['simulationSettings']['slopes']
 
-        # TODO: Try to move all possible failure points (like accessing elements of the JSON) at the start.
-        
         # Each element of "results" is a simulation request for a different source in the same environment,
         #  which is analyzed only once. All share the same settings and the same list of receivers.
         num_srcs = len(result_container['results'])
@@ -510,12 +506,11 @@ class MoDARTMethod(SimulationMethod):
 
         # Some MoD-ART parameters will be saved in the JSON.
         # For now, this is just for debugging/testing.
-        if result_container['MoDART_data'] is None:
-            result_container['MoDART_data'] = {
-                'T60': MoDART_data['T60'].tolist(),
-                'Band idx': MoDART_data['Band idx'].tolist(),
-                'Eigenvector shape': MoDART_data['V_hat'].shape
-            }
+        result_container['MoDART_data'] = {
+            'T60': MoDART_data['T60'].tolist(),
+            'Band idx': MoDART_data['Band idx'].tolist(),
+            'Eigenvector shape': MoDART_data['V_hat'].shape
+        }
 
         for src_idx in range(num_srcs):
             # Noise-shaping code (may need revising), in case an impulse response was to be returned.

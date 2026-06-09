@@ -189,7 +189,7 @@ def save_materials_file(json_file_path: str | Path) -> None:
         if freq_bands is None:
             freq_bands = freqs
         else:
-            assert len(freq_bands) == len(freqs)
+            assert np.allclose(freq_bands, freqs)
     
     # Arrange the coefficients into a dict.
     absorptions = dict()
@@ -431,12 +431,37 @@ class MoDARTMethod(SimulationMethod):
         T60_threshold = result_container['simulationSettings']['T60']
         max_slopes_per_band = result_container['simulationSettings']['slopes']
 
-        # Each element of "results" is assumed to be a simulation request for a different source
-        #  in the same environment, analyzed once.
-        # TODO: Check that all relevant settings are identical across different "results" entries.
-        num_sims = len(result_container['results'])
+        # TODO: Try to move all possible failure points (like accessing elements of the JSON) at the start.
         
-        # Run the pre-processing (shared by all sources, listeners).
+        # Each element of "results" is a simulation request for a different source in the same environment,
+        #  which is analyzed only once. All share the same settings and the same list of receivers.
+        num_srcs = len(result_container['results'])
+        if num_srcs == 0:
+            raise ValueError('No source positions specified.')
+        
+        source_positions = np.zeros((num_srcs, 3))
+        for src_idx in range(num_srcs):
+            src_dict = result_container['results'][src_idx]
+            
+            source_positions[src_idx] = np.array([src_dict['sourceX'],
+                                                  src_dict['sourceY'],
+                                                  src_dict['sourceZ']])
+            
+            these_receiver_positions = np.array([[pos['x'], pos['y'], pos['z']]
+                                                 for pos in src_dict['responses']])
+            
+            if src_idx == 0:
+                receiver_positions = these_receiver_positions
+            elif these_receiver_positions.shape != receiver_positions.shape:
+                raise ValueError('The list of receiver positions is not the same for all sources.')
+            elif not np.allclose(receiver_positions, these_receiver_positions):
+                raise ValueError('The list of receiver positions is not the same for all sources.')
+
+        num_rcvs = receiver_positions.shape[0]
+        if num_rcvs == 0:
+            raise ValueError('No receiver positions specified.')
+        
+        # Run the pre-processing (shared by all sources, receivers).
         # Step 1: Prepare the ART model.
         try:
             compute_ART(folder_path=environment_folder,
@@ -448,8 +473,8 @@ class MoDARTMethod(SimulationMethod):
             raise RuntimeError('Failed to create the ART model (environment pre-processing).') from exc
         
         # Claim that the ART model constitutes 40% of the overall progress (very arbitrary).
-        for sim_idx in range(num_sims):
-            result_container['results'][sim_idx]['percentage'] = 40
+        for src_idx in range(num_srcs):
+            result_container['results'][src_idx]['percentage'] = 40
         # Save the updated JSON.
         with open(self.input_json_path, "w") as json_output:
             json_output.write(json.dumps(result_container, indent=4))
@@ -465,46 +490,38 @@ class MoDARTMethod(SimulationMethod):
             raise RuntimeError('Failed to run the modal analysis (environment pre-processing).') from exc
 
         # Claim that the MoD-ART analysis constitutes another 40% of the overall progress (very arbitrary).
-        for sim_idx in range(num_sims):
-            result_container['results'][sim_idx]['percentage'] = 80
+        for src_idx in range(num_srcs):
+            result_container['results'][src_idx]['percentage'] = 80
         # Save the updated JSON.
         with open(self.input_json_path, "w") as json_output:
             json_output.write(json.dumps(result_container, indent=4))
 
+        # Generate the echograms with MoD-ART.
+        try:
+            MoDART_tuple = run_MoDART(environment_folder,
+                                      source_positions, receiver_positions,
+                                      echogram_duration=response_duration,
+                                      echogram_sample_rate=echogram_sample_rate,
+                                      humidity=humidity, temperature=temperature, pressure=pressure,
+                                      num_rays=rays_per_hemisphere)
+            MoDART_echograms, frequencies, MoDART_data = MoDART_tuple
+        except Exception as exc:
+            raise RuntimeError(f'Failed to generate echograms for simulation #{src_idx+1}.') from exc
+
         # Some MoD-ART parameters will be saved in the JSON.
         # For now, this is just for debugging/testing.
-        result_container['MoDART_data'] = None
+        if result_container['MoDART_data'] is None:
+            result_container['MoDART_data'] = {
+                'T60': MoDART_data['T60'].tolist(),
+                'Band idx': MoDART_data['Band idx'].tolist(),
+                'Eigenvector shape': MoDART_data['V_hat'].shape
+            }
 
-        for sim_idx, sim_dict in enumerate(result_container['results']):
-            source_position = np.array([sim_dict['sourceX'],
-                                        sim_dict['sourceY'],
-                                        sim_dict['sourceZ']])
-            listener_positions = np.array([[pos['x'], pos['y'], pos['z']]
-                                           for pos in sim_dict['responses']])
-
-            # Generate the echograms with MoD-ART.
-            try:
-                MoDART_tuple = run_MoDART(environment_folder,
-                                          source_position, listener_positions,
-                                          echogram_duration=response_duration,
-                                          echogram_sample_rate=echogram_sample_rate,
-                                          humidity=humidity, temperature=temperature, pressure=pressure,
-                                          num_rays=rays_per_hemisphere)
-                MoDART_echograms, frequencies, MoDART_data = MoDART_tuple
-            except Exception as exc:
-                raise RuntimeError(f'Failed to generate echograms for simulation #{sim_idx+1}.') from exc
-
-            if result_container['MoDART_data'] is None:
-                result_container['MoDART_data'] = {
-                    'T60': MoDART_data['T60'].tolist(),
-                    'Band idx': MoDART_data['Band idx'].tolist(),
-                    'Eigenvector shape': MoDART_data['V_hat'].shape
-                }
-
-            # Noise-shaping code, in case an impulse response was to be returned.
+        for src_idx in range(num_srcs):
+            # Noise-shaping code (may need revising), in case an impulse response was to be returned.
             """
             # Claim that the response generation constitutes the last 5% of the overall progress (very arbitrary).
-            result_container['results'][sim_idx]['percentage'] = 95
+            result_container['results'][src_idx]['percentage'] = 95
             # Save the updated JSON.
             with open(self.input_json_path, "w") as json_output:
                 json_output.write(json.dumps(result_container, indent=4))
@@ -527,12 +544,12 @@ class MoDARTMethod(SimulationMethod):
                 responses = noise_shaping(audio_sample_rate,
                                           frequencies, envelopes)
             except Exception as exc:
-                raise RuntimeError(f'Failed to generate responses for simulation #{sim_idx+1}.') from exc
+                raise RuntimeError(f'Failed to generate responses for simulation #{src_idx+1}.') from exc
 
             # Write results back to JSON.
-            for rec_idx in range(len(listener_positions)):
+            for rcv_idx in range(num_rcvs):
                 # Note that the first index of "responses" is for the single source position.
-                result_container['results'][sim_idx]['responses'][rec_idx]['receiverResults'] = responses[0, rec_idx].tolist()
+                result_container['results'][src_idx]['responses'][rcv_idx]['receiverResults'] = responses[0, rcv_idx].tolist()
             """
 
             EDCs = schroeder_curves(audio_sample_rate, frequencies, MoDART_echograms)
@@ -541,18 +558,18 @@ class MoDARTMethod(SimulationMethod):
             
             time_axis = np.arange(0, response_duration, 1 / echogram_sample_rate)
 
-            for rec_idx in range(len(listener_positions)):
+            for rcv_idx in range(num_rcvs):
                 for freq_idx, freq in enumerate(frequencies):
-                    result_container['results'][sim_idx]['responses'][rec_idx]['receiverResults'].append(
+                    result_container['results'][src_idx]['responses'][rcv_idx]['receiverResults'].append(
                         {
-                            "data": EDCs[0, rec_idx, freq_idx].tolist(),
+                            "data": EDCs[src_idx, rcv_idx, freq_idx].tolist(),
                             "t": time_axis.tolist(),
                             "frequency": freq,
                             "type": "edc",
                         }
                     )
 
-            result_container['results'][sim_idx]['percentage'] = 100
+            result_container['results'][src_idx]['percentage'] = 100
             # Save the updated JSON.
             with open(self.input_json_path, "w") as json_output:
                 json_output.write(json.dumps(result_container, indent=4))

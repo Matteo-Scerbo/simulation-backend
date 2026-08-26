@@ -85,16 +85,19 @@ def test_modart_method_cli(mock_requests_post, create_modified_input_file):
                 rec_res = resp['receiverResults']
                 assert rec_res is not None
                 assert len(rec_res) > 0
-                for r in rec_res:
-                    assert len(r) == 4
-                    assert 'data' in r
-                    assert 't' in r
-                    assert 'frequency' in r
-                    assert 'type' in r
-                    assert r['type'] == 'edc'
-                    assert len(r['data']) == len(r['t'])
+                
+                assert np.any(np.abs(rec_res) > 0)
 
-                    assert np.all(np.isfinite(r['data']))
+                # for rir in rec_res:
+                #     assert len(r) == 4
+                #     assert 'data' in r
+                #     assert 't' in r
+                #     assert 'frequency' in r
+                #     assert 'type' in r
+                #     assert r['type'] == 'edc'
+                #     assert len(r['data']) == len(r['t'])
+
+                #     assert np.all(np.isfinite(r['data']))
 
         # The function returns a few MoD-ART parameters for debugging/testing.
         assert 'MoDART_data' in output_data

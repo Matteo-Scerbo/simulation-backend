@@ -513,8 +513,7 @@ class MoDARTMethod(SimulationMethod):
         }
 
         for src_idx in range(num_srcs):
-            # Noise-shaping code (may need revising), in case an impulse response was to be returned.
-            """
+            # Noise-shaping code. TODO: may need revising.
             # Claim that the response generation constitutes the last 5% of the overall progress (very arbitrary).
             result_container['results'][src_idx]['percentage'] = 95
             # Save the updated JSON.
@@ -524,6 +523,7 @@ class MoDARTMethod(SimulationMethod):
             # Prepare the audio-rate time intervals at which we'll evaluate the upsampled echogram.
             echogram_time_axis = np.arange(0, response_duration, 1 / echogram_sample_rate)
             audio_time_axis = np.arange(0, response_duration, 1 / audio_sample_rate)
+            
             # We use a linear interpolation, because any other upsampling algorithm risks introducing negative values.
             linear_spline = make_interp_spline(echogram_time_axis, MoDART_echograms, k=1, axis=-1)
             upsampled_echograms = linear_spline(audio_time_axis)
@@ -545,24 +545,23 @@ class MoDARTMethod(SimulationMethod):
             for rcv_idx in range(num_rcvs):
                 # Note that the first index of "responses" is for the single source position.
                 result_container['results'][src_idx]['responses'][rcv_idx]['receiverResults'] = responses[0, rcv_idx].tolist()
-            """
 
-            EDCs = schroeder_curves(audio_sample_rate, frequencies, MoDART_echograms)
-            EDCs = np.clip(EDCs, 1e-20, None)
-            EDCs = 10 * np.log10(EDCs)
+            # EDCs = schroeder_curves(audio_sample_rate, frequencies, MoDART_echograms)
+            # EDCs = np.clip(EDCs, 1e-20, None)
+            # EDCs = 10 * np.log10(EDCs)
             
-            time_axis = np.arange(0, response_duration, 1 / echogram_sample_rate)
+            # time_axis = np.arange(0, response_duration, 1 / echogram_sample_rate)
 
-            for rcv_idx in range(num_rcvs):
-                for freq_idx, freq in enumerate(frequencies):
-                    result_container['results'][src_idx]['responses'][rcv_idx]['receiverResults'].append(
-                        {
-                            "data": EDCs[src_idx, rcv_idx, freq_idx].tolist(),
-                            "t": time_axis.tolist(),
-                            "frequency": freq,
-                            "type": "edc",
-                        }
-                    )
+            # for rcv_idx in range(num_rcvs):
+            #     for freq_idx, freq in enumerate(frequencies):
+            #         result_container['results'][src_idx]['responses'][rcv_idx]['receiverResults'].append(
+            #             {
+            #                 "data": EDCs[src_idx, rcv_idx, freq_idx].tolist(),
+            #                 "t": time_axis.tolist(),
+            #                 "frequency": freq,
+            #                 "type": "edc",
+            #             }
+            #         )
 
             result_container['results'][src_idx]['percentage'] = 100
             # Save the updated JSON.

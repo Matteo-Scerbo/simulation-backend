@@ -441,10 +441,11 @@ class MoDARTMethod(SimulationMethod):
         # Load the JSON file and extract its relevant contents.
         with open(self.input_json_path, 'r') as json_file:
             result_container = json.load(json_file)
+
         environment_folder = result_container['MoDART_data_subfolder']
-        audio_sample_rate = result_container['fs_auralization']
         response_duration = result_container['simulationSettings']['durat']
         echogram_sample_rate = result_container['simulationSettings']['f_e']
+        audio_sample_rate = result_container['simulationSettings']['f_s']
         multiprocess_pool_size = result_container['simulationSettings']['pool']
         humidity = result_container['simulationSettings']['humi']
         temperature = result_container['simulationSettings']['temp']

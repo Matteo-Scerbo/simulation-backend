@@ -26,6 +26,18 @@
             "endAdornment": "Hz"
         },
         {
+            "name": "Auralization sample rate",
+            "description": "Sample rate used to produce the auralization RIR.",
+            "id": "f_s",
+            "type": "float",
+            "display": "text",
+            "min": 5e1,
+            "max": 5e4,
+            "default": 44.1e3,
+            "step": 1e2,
+            "endAdornment": "Hz"
+        },
+        {
             "name": "T60 threshold",
             "description": "The decomposition (in each band) will stop after locating all energy modes with longer reverberation times than this.",
             "id": "T60",

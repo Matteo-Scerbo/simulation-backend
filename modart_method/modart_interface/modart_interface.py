@@ -1,5 +1,6 @@
 """Module implementing a CHORAS interface for MoDART.
 """
+import sys
 import json
 import gmsh
 import numpy as np
@@ -168,7 +169,7 @@ def save_materials_file(json_file_path: str | Path) -> None:
         raise FileNotFoundError('The specified JSON file could not be found.')
 
     # Load the input JSON file.
-    with open(json_file_path, "r") as json_file:
+    with open(json_file_path, 'r') as json_file:
         result_container = json.load(json_file)
     
     # The formatted data needs to be saved in the specified folder.
@@ -376,7 +377,7 @@ class MoDARTMethod(SimulationMethod):
         """Prepare the input data and run the method proper.
         """
         # Load the JSON configuration file.
-        with open(self.input_json_path, "r") as json_file:
+        with open(self.input_json_path, 'r') as json_file:
             result_container = json.load(json_file)
 
         # Create a folder for the "temporary" ART and MoD-ART data.
@@ -387,23 +388,47 @@ class MoDARTMethod(SimulationMethod):
             Path.mkdir(temp_subfolder)
         
         # Save the updated JSON (with the added MoDART_data_subfolder field).
-        with open(self.input_json_path, "w") as json_output:
+        with open(self.input_json_path, 'w') as json_output:
             json_output.write(json.dumps(result_container, indent=4))
 
         # Convert the .geo file into the format expected by MoD-ART.
         try:
             save_converted_mesh(result_container['geo_path'], temp_subfolder)
         except Exception as exc:
-            raise RuntimeError('Failed to reformat the input mesh as required.') from exc
+            # raise RuntimeError('Failed to reformat the input mesh as required.') from exc
+            result_container['error'] = {'type': type(exc).__name__,
+                                         'message': str(exc)}
+            
+            with open(self.input_json_path, 'w') as json_output:
+                json_output.write(json.dumps(result_container, indent=4))
+
+            sys.exit(1)
 
         # Save the material information into the .csv file expected by MoD-ART.
         try:
             save_materials_file(self.input_json_path)
         except Exception as exc:
-            raise RuntimeError('Failed to reformat the material properties as required.') from exc
+            # raise RuntimeError('Failed to reformat the material properties as required.') from exc
+            result_container['error'] = {'type': type(exc).__name__,
+                                         'message': str(exc)}
+            
+            with open(self.input_json_path, 'w') as json_output:
+                json_output.write(json.dumps(result_container, indent=4))
+
+            sys.exit(1)
 
         # Run a one-shot MoD-ART simulation.
-        self._modart_method()
+        try:
+            self._modart_method()
+        except Exception as exc:
+            # raise RuntimeError('Failed to run the MoD-ART method.') from exc
+            result_container['error'] = {'type': type(exc).__name__,
+                                         'message': str(exc)}
+            
+            with open(self.input_json_path, 'w') as json_output:
+                json_output.write(json.dumps(result_container, indent=4))
+
+            sys.exit(1)
 
     def _modart_method(self) -> None:
         """
@@ -414,7 +439,7 @@ class MoDARTMethod(SimulationMethod):
         - generation of impulse responses from energy envelopes.
         """
         # Load the JSON file and extract its relevant contents.
-        with open(self.input_json_path, "r") as json_file:
+        with open(self.input_json_path, 'r') as json_file:
             result_container = json.load(json_file)
         environment_folder = result_container['MoDART_data_subfolder']
         audio_sample_rate = result_container['fs_auralization']
@@ -472,7 +497,7 @@ class MoDARTMethod(SimulationMethod):
         for src_idx in range(num_srcs):
             result_container['results'][src_idx]['percentage'] = 40
         # Save the updated JSON.
-        with open(self.input_json_path, "w") as json_output:
+        with open(self.input_json_path, 'w') as json_output:
             json_output.write(json.dumps(result_container, indent=4))
 
         # Step 2: Analyze the ART model.
@@ -489,7 +514,7 @@ class MoDARTMethod(SimulationMethod):
         for src_idx in range(num_srcs):
             result_container['results'][src_idx]['percentage'] = 80
         # Save the updated JSON.
-        with open(self.input_json_path, "w") as json_output:
+        with open(self.input_json_path, 'w') as json_output:
             json_output.write(json.dumps(result_container, indent=4))
 
         # Generate the echograms with MoD-ART.
@@ -517,13 +542,13 @@ class MoDARTMethod(SimulationMethod):
             # Claim that the response generation constitutes the last 5% of the overall progress (very arbitrary).
             result_container['results'][src_idx]['percentage'] = 95
             # Save the updated JSON.
-            with open(self.input_json_path, "w") as json_output:
+            with open(self.input_json_path, 'w') as json_output:
                 json_output.write(json.dumps(result_container, indent=4))
             
             # Prepare the audio-rate time intervals at which we'll evaluate the upsampled echogram.
             echogram_time_axis = np.arange(0, response_duration, 1 / echogram_sample_rate)
             audio_time_axis = np.arange(0, response_duration, 1 / audio_sample_rate)
-            
+
             # We use a linear interpolation, because any other upsampling algorithm risks introducing negative values.
             linear_spline = make_interp_spline(echogram_time_axis, MoDART_echograms, k=1, axis=-1)
             upsampled_echograms = linear_spline(audio_time_axis)
@@ -556,16 +581,16 @@ class MoDARTMethod(SimulationMethod):
             #     for freq_idx, freq in enumerate(frequencies):
             #         result_container['results'][src_idx]['responses'][rcv_idx]['receiverResults'].append(
             #             {
-            #                 "data": EDCs[src_idx, rcv_idx, freq_idx].tolist(),
-            #                 "t": time_axis.tolist(),
-            #                 "frequency": freq,
-            #                 "type": "edc",
+            #                 'data': EDCs[src_idx, rcv_idx, freq_idx].tolist(),
+            #                 't': time_axis.tolist(),
+            #                 'frequency': freq,
+            #                 'type': 'edc',
             #             }
             #         )
 
             result_container['results'][src_idx]['percentage'] = 100
             # Save the updated JSON.
-            with open(self.input_json_path, "w") as json_output:
+            with open(self.input_json_path, 'w') as json_output:
                 json_output.write(json.dumps(result_container, indent=4))
 
-        print("MoDART simulation completed successfully!")
+        print('MoDART simulation completed successfully!')

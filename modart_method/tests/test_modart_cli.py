@@ -32,9 +32,9 @@ DEFAULT VALUES:
                                  'floor': '0, 0, 0, 0, 0',
                                  'ceiling': '0, 0, 0, 0, 0'},
      'simulationSettings': {'slopes': 1, 'humi': 0, 'temp': 0}},
-    {'absorption_coefficients': {'walls': '0.9999, 0.9999, 0.9999, 0.9999, 0.9999',
-                                 'floor': '0.9999, 0.9999, 0.9999, 0.9999, 0.9999',
-                                 'ceiling': '0.9999, 0.9999, 0.9999, 0.9999, 0.9999'},
+    {'absorption_coefficients': {'walls': '0.999, 0.999, 0.999, 0.999, 0.999',
+                                 'floor': '0.999, 0.999, 0.999, 0.999, 0.999',
+                                 'ceiling': '0.999, 0.999, 0.999, 0.999, 0.999'},
      'simulationSettings': {'slopes': 1}},
     {'absorption_coefficients': {'walls': '1, 1, 1, 1, 1',
                                  'floor': '1, 1, 1, 1, 1',
@@ -61,8 +61,23 @@ def test_modart_method_cli(mock_requests_post, create_modified_input_file):
            for coeff in coeffs.values()):
         # When all material absorptions are exactly 1, reverberation time is 0.
         # The state transition matrix becomes singular, and decomposition is impossible.
-        with pytest.raises(RuntimeError, match='Failed to run the modal analysis'):
+        # with pytest.raises(RuntimeError, match='Failed to run the modal analysis'):
+        #     main()
+
+        # https://stackoverflow.com/a/73478360
+        with pytest.raises(SystemExit) as excinfo:
             main()
+        assert excinfo.value.code == 1
+
+        with open(create_modified_input_file, 'r') as f:
+            output_data = json.load(f)
+        
+        assert 'error' in output_data
+        error = output_data['error']
+        assert 'type' in error
+        assert 'message' in error
+        assert error['type'] == 'RuntimeError'
+        assert error['message'] == 'Failed to run the modal analysis (environment pre-processing).'
     else:
         # With other settings, the decomposition should not have any issues.
         # N.B.: All remaining tests are in this scope, where "main()" is successful.
@@ -85,7 +100,7 @@ def test_modart_method_cli(mock_requests_post, create_modified_input_file):
                 rec_res = resp['receiverResults']
                 assert rec_res is not None
                 assert len(rec_res) > 0
-                
+
                 assert np.any(np.abs(rec_res) > 0)
 
                 # for rir in rec_res:
@@ -133,11 +148,11 @@ def test_modart_method_cli(mock_requests_post, create_modified_input_file):
                                [187.97, 181.98, 174.76, 153.67, 103.97],
                                rtol=0.05, atol=0.05)
             
-        elif all(coeff == '0.9999, 0.9999, 0.9999, 0.9999, 0.9999'
+        elif all(coeff == '0.999, 0.999, 0.999, 0.999, 0.999'
                 for coeff in coeffs.values()):
             if settings['slopes'] != 1:
                 raise NotImplementedError('I did not prepare that much reference data.')
-            
+
             # When all material absorptions are close to 1, reverberation time is miniscule.
             assert np.allclose(MoDART_data['T60'],
                                5e-3, rtol=1e-3, atol=1e-3)

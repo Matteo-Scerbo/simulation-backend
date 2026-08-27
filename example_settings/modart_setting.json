@@ -3,6 +3,7 @@
     "options": [
         {
             "name": "Response duration",
+            "description": "Duration of the returned impulse response, in seconds.",
             "id": "durat",
             "type": "float",
             "display": "text",
@@ -14,6 +15,7 @@
         },
         {
             "name": "Echogram sample rate",
+            "description": "Sample rate used to compute the echogram (energy response envelope). COMPLETELY UNRELATED TO THE AURALIZATION SAMPLE RATE. Higher values will produce more accurate results, but the decomposition will take longer.",
             "id": "f_e",
             "type": "float",
             "display": "text",
@@ -25,6 +27,7 @@
         },
         {
             "name": "T60 threshold",
+            "description": "The decomposition (in each band) will stop after locating all energy modes with longer reverberation times than this.",
             "id": "T60",
             "type": "float",
             "display": "text",
@@ -36,6 +39,7 @@
         },
         {
             "name": "Max slopes",
+            "description": "The decomposition (in each band) will stop after locating this many energy modes, even if the T60 threshold has not been reached.",
             "id": "slopes",
             "type": "int",
             "display": "text",
@@ -79,6 +83,7 @@
         },
         {
             "name": "Points per square meter",
+            "description": "Density of surface sample points used for the numerical area integration.",
             "id": "ppsm",
             "type": "float",
             "display": "text",
@@ -89,6 +94,7 @@
         },
         {
             "name": "Rays per hemisphere",
+            "description": "Density of sample directions used for the numerical solid angle integration.",
             "id": "rays",
             "type": "int",
             "display": "text",
@@ -99,6 +105,7 @@
         },
         {
             "name": "Max parallel processes",
+            "description": "Cap to the number of processes spawned for the numerical integration.",
             "id": "pool",
             "type": "int",
             "display": "text",

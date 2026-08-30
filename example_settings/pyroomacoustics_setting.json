@@ -1,0 +1,98 @@
+{
+    "type": "simulationSettings",
+    "options": [
+        {
+            "name": "Speed of sound",
+            "description": "Speed of sound in air filling the room.",
+            "id": "speed_of_sound",
+            "type": "float",
+            "display": "text",
+            "min": 300,
+            "max": 400,
+            "default": 343,
+            "step": 1,
+            "endAdornment": "m/s"
+        },
+        {
+            "name": "Global scattering coefficient",
+            "description": "Broadband scattering coefficient for all surfaces of the room.",
+            "id": "global_scattering_coefficient",
+            "type": "float",
+            "display": "text",
+            "min": 0,
+            "max": 1,
+            "default": 0.1,
+            "step": 0.1
+        },
+        {
+            "name": "Image sources: Order",
+            "description": "The maximum order of image sources to consider. Higher order reflections will be generated via the ray tracer. A higher number will increase computation time and memory usage.",
+            "id": "image_source_order",
+            "type": "integer",
+            "display": "text",
+            "min": 1,
+            "max": 10,
+            "default": 2,
+            "step": 1
+        },
+        {
+            "name": "Ray tracing: Number of rays",
+            "description": "The number of rays to trace from each source. Higher numbers will yield more accurate results but will take longer to compute.",
+            "id": "ray_tracer_number_of_rays",
+            "type": "integer",
+            "display": "text",
+            "min": 1000,
+            "max": 100000,
+            "default": 10000,
+            "step": 1000
+        },
+        {
+            "name": "Ray tracing: detector radius",
+            "description": "The radius of the detector sphere around each receiver point. Rays that intersect this sphere will be considered as detected by the receiver.",
+            "id": "ray_tracer_detector_radius",
+            "type": "float",
+            "display": "text",
+            "min": 0.1,
+            "max": 2,
+            "default": 0.5,
+            "step": 0.01,
+            "endAdornment": "m"
+        },
+        {
+            "name": "Ray tracing: Time threshold",
+            "description": "The maximum time for which a ray will be followed.",
+            "id": "ray_tracer_time_threshold",
+            "type": "float",
+            "display": "text",
+            "min": 5,
+            "max": 90,
+            "default": 10,
+            "step": 1,
+            "endAdornment": "s"
+        },
+        {
+            "name": "Ray tracing: Energy threshold",
+            "description": "The energy threshold below which a ray will no longer be followed.",
+            "id": "ray_tracer_energy_threshold",
+            "type": "float",
+            "display": "text",
+            "min": -120,
+            "max": -40,
+            "default": -80,
+            "step": 1,
+            "endAdornment": "(dB re 1)"
+        },
+        {
+            "name": "Sampling rate",
+            "description": "The sampling rate of the simulated room impulse response.",
+            "id": "sampling_rate",
+            "type": "integer",
+            "display": "text",
+            "min": 8000,
+            "max": 48000,
+            "default": 8000,
+            "step": 1000,
+            "endAdornment": "Hz"
+        }
+    ]
+}

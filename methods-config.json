@@ -20,23 +20,23 @@
         "documentationURL":"https://building-acoustics-tu-eindhoven.github.io/acousticDE/index.html"
     },
     {
+        "simulationType": "Pyroomacoustics",
+        "containerImage": "pyroomacoustics_image:latest",
+        "envVars": {},
+        "label": "Pyroomacoustics",
+        "settings": "pyroomacoustics_setting.json",
+        "entryFile": "__main__.py",
+        "repositoryURL": "https://github.com/LCAV/pyroomacoustics",
+        "documentationURL": "https://pyroomacoustics.readthedocs.io"
+    },
+    {
         "simulationType": "MoDART",
-        "containerImage": "modart_image:latest", 
+        "containerImage": "modart_image:latest",
         "envVars": {},
         "label": "MoD-ART",
         "entryFile":"modart_interface.py",
         "settings":"modart_setting.json",
         "repositoryURL":"https://github.com/IoSR-Surrey/MoD-ART/",
         "documentationURL":"https://github.com/IoSR-Surrey/MoD-ART/blob/master/example%20usage/Tutorial.ipynb"
-    },
-    {
-        "simulationType": "MyNewMethod",
-        "containerImage": "mynewmethod_image:latest", 
-        "envVars": {},
-        "label": "My New Method",
-        "entryFile":"MyNewMethodInterface.py",
-        "settings":"my_new_setting.json",
-        "repositoryURL":"",
-        "documentationURL":""
     }
 ]

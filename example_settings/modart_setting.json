@@ -28,7 +28,7 @@
         {
             "name": "Auralization sample rate",
             "description": "Sample rate used to produce the auralization RIR.",
-            "id": "f_s",
+            "id": "sampling_rate",
             "type": "float",
             "display": "text",
             "min": 5e1,

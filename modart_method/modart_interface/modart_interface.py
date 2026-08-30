@@ -445,7 +445,7 @@ class MoDARTMethod(SimulationMethod):
         environment_folder = result_container['MoDART_data_subfolder']
         response_duration = result_container['simulationSettings']['durat']
         echogram_sample_rate = result_container['simulationSettings']['f_e']
-        audio_sample_rate = result_container['simulationSettings']['f_s']
+        audio_sample_rate = result_container['simulationSettings']['sampling_rate']
         multiprocess_pool_size = result_container['simulationSettings']['pool']
         humidity = result_container['simulationSettings']['humi']
         temperature = result_container['simulationSettings']['temp']

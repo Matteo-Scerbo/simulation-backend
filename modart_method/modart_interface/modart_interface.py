@@ -221,7 +221,8 @@ def save_materials_file(json_file_path: str | Path) -> None:
 
 def noise_shaping(fs: int | float,
                   band_centers: np.ndarray,
-                  envelopes: np.ndarray) -> np.ndarray:
+                  envelopes: np.ndarray,
+                  order: int = 5) -> np.ndarray:
     """
     Generate impulse responses based on band-wise signal envelopes, through the
      amplitude modulation of stochastic signals.
@@ -239,6 +240,9 @@ def noise_shaping(fs: int | float,
         - R is the number of receivers
         - B is the number of frequency bands (must match length of "band_centers")
         - T is the duration in samples.
+    order : int
+        Order passed to the "butter" bandpass filtering function.
+        Flat responses are achieved with odd numbers greater than three.
     
     Returns
     -------
@@ -268,7 +272,7 @@ def noise_shaping(fs: int | float,
     # White noise
     #   noise_signal = rng.normal(size=duration_in_samples)
     # Poisson process
-    noise_signal = rng.poisson(lam=0.5, size=duration_in_samples).astype(float)
+    noise_signal = rng.poisson(lam=0.05, size=duration_in_samples).astype(float)
 
     # Ensure the noise signal has unit energy per second, matching the
     #   convention used to generate the echograms.
@@ -294,9 +298,9 @@ def noise_shaping(fs: int | float,
     
     for b in range(num_bands):
         # Prepare the suitable band-pass filter...
-        sos = butter(6, (band_centers[b] / band_bound,
-                         band_centers[b] * band_bound),
-                    btype='bandpass', output='sos', fs=fs)
+        sos = butter(order, (band_centers[b] / band_bound,
+                             band_centers[b] * band_bound),
+                     btype='bandpass', output='sos', fs=fs)
         # ...and apply it to the stochastic signal.
         filtered_noise_signals[b] = sosfilt(sos, noise_signal)
     
@@ -595,3 +599,31 @@ class MoDARTMethod(SimulationMethod):
                 json_output.write(json.dumps(result_container, indent=4))
 
         print('MoDART simulation completed successfully!')
+
+
+def test_noise_shaping_flatness():
+    from matplotlib import pyplot as plt
+
+    for order in range(1, 12, 2):
+        resp = np.zeros(4097)
+        for i in range(100):
+            responses = noise_shaping(44100,
+                                      np.array([2.5e2, 5e2, 1e3, 2e3, 4e3, 8e3]),
+                                      np.ones((1, 1, 6, 88200)),
+                                      order)
+            response = responses.squeeze()
+
+            transf = np.fft.rfft(response, n=2**13)
+            resp += np.abs(transf)
+        resp /= 100
+
+        plt.plot(resp, label=order)
+    
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.legend()
+    plt.show()
+
+  
+# if __name__ == "__main__":
+#     test_noise_shaping_flatness()

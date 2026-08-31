@@ -56,7 +56,8 @@
         "pres": 100,
         "ppsm": 30,
         "rays": 1000,
-        "pool": 4
+        "pool": 4,
+        "sampling_rate": 44100
     },
     "settingsPreset": "Default"
 }

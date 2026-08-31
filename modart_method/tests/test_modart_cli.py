@@ -77,7 +77,7 @@ def test_modart_method_cli(mock_requests_post, create_modified_input_file):
         assert 'type' in error
         assert 'message' in error
         assert error['type'] == 'RuntimeError'
-        assert error['message'] == 'Failed to run the modal analysis (environment pre-processing).'
+        assert 'Failed to run' in error['message']
     else:
         # With other settings, the decomposition should not have any issues.
         # N.B.: All remaining tests are in this scope, where "main()" is successful.

@@ -399,40 +399,19 @@ class MoDARTMethod(SimulationMethod):
         try:
             save_converted_mesh(result_container['geo_path'], temp_subfolder)
         except Exception as exc:
-            # raise RuntimeError('Failed to reformat the input mesh as required.') from exc
-            result_container['error'] = {'type': type(exc).__name__,
-                                         'message': str(exc)}
-            
-            with open(self.input_json_path, 'w') as json_output:
-                json_output.write(json.dumps(result_container, indent=4))
-
-            sys.exit(1)
+            raise RuntimeError('Failed to reformat the input mesh as required.') from exc
 
         # Save the material information into the .csv file expected by MoD-ART.
         try:
             save_materials_file(self.input_json_path)
         except Exception as exc:
-            # raise RuntimeError('Failed to reformat the material properties as required.') from exc
-            result_container['error'] = {'type': type(exc).__name__,
-                                         'message': str(exc)}
-            
-            with open(self.input_json_path, 'w') as json_output:
-                json_output.write(json.dumps(result_container, indent=4))
-
-            sys.exit(1)
+            raise RuntimeError('Failed to reformat the material properties as required.') from exc
 
         # Run a one-shot MoD-ART simulation.
         try:
             self._modart_method()
         except Exception as exc:
-            # raise RuntimeError('Failed to run the MoD-ART method.') from exc
-            result_container['error'] = {'type': type(exc).__name__,
-                                         'message': str(exc)}
-            
-            with open(self.input_json_path, 'w') as json_output:
-                json_output.write(json.dumps(result_container, indent=4))
-
-            sys.exit(1)
+            raise RuntimeError('Failed to run the MoD-ART method.') from exc
 
     def _modart_method(self) -> None:
         """

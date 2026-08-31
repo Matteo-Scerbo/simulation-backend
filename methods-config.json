@@ -40,7 +40,7 @@
         "documentationURL":"https://www.tu.berlin/en/ak/research/projects/differentiable-acoustic-path-tracing"
     },
     {
-            "simulationType": "sparrowpy", 
+        "simulationType": "sparrowpy", 
         "containerImage": "sparrowpy_image:latest",
         "envVars": {},
         "label": "sparrowpy",

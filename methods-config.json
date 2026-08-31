@@ -38,5 +38,15 @@
         "settings":"misuka_setting.json",
         "repositoryURL":"https://github.com/misuka-renderer/misuka.git",
         "documentationURL":"https://www.tu.berlin/en/ak/research/projects/differentiable-acoustic-path-tracing"
+    },
+    {
+            "simulationType": "sparrowpy", 
+        "containerImage": "sparrowpy_image:latest",
+        "envVars": {},
+        "label": "sparrowpy",
+        "settings":"sparrowpy_setting.json",
+        "entryFile":"sparrowpy_interface.py",
+        "repositoryURL":"https://github.com/sparrow-acoustics/sparrowpy",
+        "documentationURL":"https://sparrowpy.readthedocs.io/en/stable"
     }
 ]

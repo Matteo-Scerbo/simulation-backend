@@ -28,6 +28,7 @@ dependencies = [
     "raves>=0.1.2",
     "gmsh==4.13.1",
     "requests",
+    "numpy<2.5.0",
 ]
 
 [project.optional-dependencies]

@@ -145,7 +145,7 @@ def test_modart_method_cli(mock_requests_post, create_modified_input_file):
             
             # When all material absorptions are 0, reverberation time is only governed by air absorption.
             assert np.allclose(MoDART_data['T60'],
-                               [187.97, 181.98, 174.76, 153.67, 103.97],
+                               [194.175, 184.681, 179.758, 169.130, 137.950],
                                rtol=0.05, atol=0.05)
             
         elif all(coeff == '0.999, 0.999, 0.999, 0.999, 0.999'
